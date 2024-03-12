@@ -1,16 +1,79 @@
 from lex2 import *
 
-# generaly before each call lex() is already called
+# generally before each call lex() is already called
 
 current_token = None
 
-# def fuction
+def parse_variable_assignment():
+    pass
 
-# def parse_print_call():
-#     global current_token
+def parse_function_definition_parameters():
+    global current_token
+    
+    if current_token == ANAGNORTK:
+        current_token = lex()
 
-#     if current_token == PRINTTK:
-#         current_token == lex()
+        if current_token == COMMATK:
+            current_token = lex()
+
+            # recursive check for more parameters
+            parse_function_definition_parameters()
+        elif current_token != COMMATK:
+            if (current_token != CPARTK):
+                if current_token == ANAGNORTK:
+                    fail_exit("Function definition parameters not separated by ','.")
+                else:
+                    fail_exit("Function definition parameters not enclosed in ')'.")
+            else:
+                return
+    else:
+        fail_exit("Expected alphanumeric after ',' function definition.") 
+
+def parse_function_call():
+    global current_token
+
+    if current_token == OPARTK:
+        current_token = lex()
+        
+        parse_function_call_expression()
+        
+        while current_token == COMMATK:
+            current_token = lex()
+
+            parse_function_call_expression()
+        
+        if current_token == CPARTK:
+            current_token = lex()
+        else:
+            fail_exit("Function call expressions not enclosed in ')'.")
+        
+    else:
+        fail_exit("Expected '(' after alphanumeric on function call.")
+
+def parse_function_call_expression():
+    global current_token
+
+    if current_token == ANAGNORTK:
+        current_token = lex()
+        if current_token == OPARTK:
+            parse_function_call()
+    elif current_token == INTEGERTK:
+        current_token = lex()
+    elif current_token != CPARTK:
+        fail_exit("Expected alphanumeric/fuction call/integer but got invalid token.")
+
+def parse_print_call():
+    global current_token
+
+    if current_token == PRINTTK:
+        current_token = lex()
+
+        if current_token == OPARTK:
+            current_token = lex()
+            
+        else:
+            fail_exit("Expected '(' after print call but got invalid token.")
+
 
 def parse_global_declaration():
     global current_token
@@ -76,28 +139,6 @@ def parse_function_definition():
     else:
         # no function definition found
         return 
-
-def parse_function_definition_parameters():
-    global current_token
-    
-    if current_token == ANAGNORTK:
-        current_token = lex()
-
-        if current_token == COMMATK:
-            current_token = lex()
-
-            # recursive check for more parameters
-            parse_function_definition_parameters()
-        elif current_token != COMMATK:
-            if (current_token != CPARTK):
-                if current_token == ANAGNORTK:
-                    fail_exit("Function definition parameters not separated by ','.")
-                else:
-                    fail_exit("Function definition parameters not enclosed in ().")
-            else:
-                return
-    else:
-        fail_exit("Expected alphanumeric after ',' function definition.") 
             
 def parse_instance():
     global current_token
@@ -112,12 +153,22 @@ def parse_instance():
         pass
     elif current_token == DEFTK:
         parse_function_definition()
-    elif current_token == INTTYPETK:
-        pass
     elif current_token == COMMENTK:
         pass
     elif current_token == PRINTTK:
-        pass
+        parse_print_call()
+    elif current_token == ANAGNORTK:
+        # this can be a function call or an assignment 
+        current_token = lex()
+        
+        if current_token == OPARTK:
+            parse_function_call()
+        elif current_token == ASSIGNTK:
+            # assignment
+            pass
+        else:
+            fail_exit("Function call '(' or variable assignment '=' expected after alphanumeric")
+
     else:
         fail_exit("Invalid token found. Syntax analysis failed.")
 
