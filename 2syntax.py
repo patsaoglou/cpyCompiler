@@ -70,9 +70,18 @@ def parse_print_call():
 
         if current_token == OPARTK:
             current_token = lex()
-            
+
+            parse_function_call_expression()
+            if current_token == CPARTK:
+                current_token = lex()
+
+                return
+            else:
+                fail_exit("Expected ')' after print function call but got invalid token.")
+
+
         else:
-            fail_exit("Expected '(' after print call but got invalid token.")
+            fail_exit("Expected '(' after print function call but got invalid token.")
 
 
 def parse_global_declaration():
