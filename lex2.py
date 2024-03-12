@@ -48,7 +48,7 @@ NOTTK=136 #not
 
 FILEPATH = "test.cpy"
 file = open(FILEPATH,"r")
-
+token = ""
 def lex():
     state=0
     i=0
@@ -65,7 +65,6 @@ def lex():
         element=file.read(1)
         if element.isspace(): 
             index=0
-            token.append(element)
         elif element.isalpha(): #anagnoristiko exei kai digit
             i=i+1
             index=1
@@ -245,6 +244,7 @@ def lex():
         elif not element: #EOF
             index=32
             print(index)
+            return EOFTK
         else:
             index=33 #error
         #token.append(element)
@@ -260,7 +260,10 @@ def lex():
     if state==K1 or state==K2:# or state==MINUSTK:
        # if state==K2 and not token[-1].isdigit():
             file.seek(pos1) #epistrefoume stin proigoumeni thesi afou exoume krifokoitaxei to epomeno
-            token.pop() # afairei to epomeno pou exoume dei apo to token
+         # afairei to epomeno pou exoume dei apo to token
+            if (token[-1].isalpha() == False):
+                token.pop()
+
 
     if state >=100:
         print ("State: (>=100)",state)
@@ -314,15 +317,12 @@ def lex():
         print((''.join(token)))
         return INTEGERTK
         
-      
-
-        
-i=0
-while(i<10):
-    ret = lex()
-    print(ret)
-    print('\n')
-    i+=1
+# ret = lex()  
+# print("TokenCode:", ret)   
+# while(ret != EOFTK):
+#     input()  
+#     ret = lex()
+#     print("TokenCode:", ret)   
 
 
 
