@@ -5,7 +5,15 @@ from lex2 import *
 current_token = None
 
 def parse_variable_assignment():
-    pass
+    global current_token
+    
+    if current_token == ASSIGNTK:
+        current_token = lex()
+
+    
+
+    else:
+        return
 
 def parse_function_definition_parameters():
     global current_token
@@ -167,14 +175,13 @@ def parse_instance():
     elif current_token == PRINTTK:
         parse_print_call()
     elif current_token == ANAGNORTK:
-        # this can be a function call or an assignment 
+        # current token in this case can be a function call or an assignment 
         current_token = lex()
         
         if current_token == OPARTK:
             parse_function_call()
         elif current_token == ASSIGNTK:
-            # assignment
-            pass
+            parse_variable_assignment()
         else:
             fail_exit("Function call '(' or variable assignment '=' expected after alphanumeric")
 
