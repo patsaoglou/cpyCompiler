@@ -1,6 +1,6 @@
 #define TOKENS
 EOFTK = -1
-ERRORTK=-2
+ERRORTK=-5
 K1=-3 #desmeumenes lekseis kai anagnwristika
 K2=-2 #gia akeraies statheres
 
@@ -207,7 +207,7 @@ def lex():
                 
 
             elif next_element=='d':
-                token.append(element)
+                token.append(next_element)
                 next_element=file.read(1)
                 if next_element=='e':
                     token.append(next_element)
@@ -234,6 +234,7 @@ def lex():
                         index=28 # #int
                     else:
                         index=29 #error
+
                 else:
                     index=30 #error
 
@@ -319,7 +320,7 @@ def lex():
         
 # ret = lex()  
 # print("TokenCode:", ret)   
-# while(ret != EOFTK):
+# while(ret != EOFTK and ret != ERRORTK):
 #     input()  
 #     ret = lex()
 #     print("TokenCode:", ret)   
