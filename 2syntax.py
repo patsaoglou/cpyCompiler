@@ -4,16 +4,119 @@ from lex2 import *
 
 current_token = None
 
-def parse_variable_assignment():
+def parse_if_statement():
     global current_token
+
+    if current_token == IFTK:
+        current_token = lex()
     
-    if current_token == ASSIGNTK:
+        parse_condition()
+
+        if current_token == UPDOWNDOTTK:
+            current_token = lex()
+
+            if current_token == OBLOCKTK:
+
+                current_token = lex()
+                
+                while current_token != CBLOCKTK:
+                    parse_instance()
+                    current_token = lex()   
+            elif current_token == ANAGNORTK:
+           
+                current_token = lex()
+                
+                if current_token == OPARTK:
+                    parse_function_call()
+                elif current_token == ASSIGNTK:
+                    current_token = lex()
+
+                    parse_expression()
+                else:
+                    fail_exit("Function call '(' or variable assignment '=' expected after alphanumeric")
+                print("basic if block finished")
+
+        else:
+            fail_exit("Expected ':' after if statement but did not get it.")
+    
+def parse_condition():
+    global current_token
+
+    if current_token == ANAGNORTK:
         current_token = lex()
 
-    
+        if current_token in [LTTK, GTTK, LETK, GETK, EQUALTK, NOT_EQUALTK]:
+            current_token = lex()
+            
+            parse_expression()
+            if current_token == UPDOWNDOTTK:
+                return
+        else:
+            fail_exit("Expected comparison token token but did not get it.")
+        if current_token in [ANDTK, ORTK]: #not 
+            while current_token in [ANDTK, ORTK]:
+                current_token = lex()
+                parse_condition()
 
+    elif current_token == OPARTK:
+        current_token = lex()
+        
+        parse_condition()
+        
+        if current_token != CPARTK:
+            fail_exit("Expected ')' on condition but did not get it")
+        else: 
+            current_token = lex()
     else:
-        return
+        fail_exit("Expected comparison or '(' on condition but did not get it")
+
+
+def parse_expression():
+    global current_token
+    
+    got_nothing_before_operator = True
+    if current_token == MINUSTK or current_token == ADDTK:
+        current_token = lex()
+
+    if current_token == ANAGNORTK:
+        current_token = lex()
+
+        got_nothing_before_operator = False
+
+        if current_token == OPARTK:
+            parse_function_call()      
+
+    elif current_token == OPARTK:
+        current_token = lex()
+
+        got_nothing_before_operator = False
+
+        parse_expression()
+            
+        if current_token == CPARTK:
+            current_token = lex()
+        else:
+            fail_exit("Expected ')' after '(' in expression.")
+
+
+    elif current_token == INTEGERTK:
+        current_token = lex()
+
+        got_nothing_before_operator = False
+
+    if got_nothing_before_operator == False:
+        print("In operator check:", current_token)
+        if current_token in [ADDTK, MINUSTK, MULTK, DIVTK, MODTK]:
+            current_token = lex()
+            parse_expression()
+        else:
+            print("Return from parse_expression")
+            return
+        
+    
+    else:
+       fail_exit("Expected AlphaNumeric, '(' or Integer after operator but got invalid token.")
+
 
 def parse_function_definition_parameters():
     global current_token
@@ -43,12 +146,16 @@ def parse_function_call():
     if current_token == OPARTK:
         current_token = lex()
         
-        parse_function_call_expression()
+        if (current_token == CPARTK):
+            current_token = lex()
+            return
+        parse_expression()
         
         while current_token == COMMATK:
             current_token = lex()
 
-            parse_function_call_expression()
+            parse_expression()
+            print("ret")
         
         if current_token == CPARTK:
             current_token = lex()
@@ -63,6 +170,7 @@ def parse_function_call_expression():
 
     if current_token == ANAGNORTK:
         current_token = lex()
+        
         if current_token == OPARTK:
             parse_function_call()
     elif current_token == INTEGERTK:
@@ -142,6 +250,7 @@ def parse_function_definition():
                             current_token = lex()
                             
                             while current_token != CBLOCKTK:
+                                input()
                                 parse_instance()
                         else:
                             fail_exit("Expected '#{' after function definition.")
@@ -167,7 +276,7 @@ def parse_instance():
     elif current_token == GLOBALTK:
         parse_global_declaration()
     elif current_token == IFTK:
-        pass
+        parse_if_statement()
     elif current_token == DEFTK:
         parse_function_definition()
     elif current_token == COMMENTK:
@@ -181,9 +290,13 @@ def parse_instance():
         if current_token == OPARTK:
             parse_function_call()
         elif current_token == ASSIGNTK:
-            parse_variable_assignment()
+            current_token = lex()
+
+            parse_expression()
         else:
             fail_exit("Function call '(' or variable assignment '=' expected after alphanumeric")
+    elif current_token == ERRORTK:
+        fail_exit("Got ERROR token from lexxer. Analysis failed.")
 
     else:
         fail_exit("Invalid token found. Syntax analysis failed.")

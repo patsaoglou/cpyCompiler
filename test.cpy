@@ -2,10 +2,13 @@
 #int counterFunctionCalls
 #int pantelis
 
+if x<5 and ( x == y):
+    x=5
+
 def max3(x, y):
 #{
     #int m
-    global counterFunctionCalls
+    global counterFunctionCalls 
     counterFunctionCalls = counterFunctionCalls + 1
     if x>y and x>z:
         m = x
