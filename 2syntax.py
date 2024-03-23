@@ -53,12 +53,10 @@ ANDTK=134 #and
 ORTK=135 #or
 NOTTK=136 #not
 
-FILEPATH = "test.cpy"
-file = open(FILEPATH,"r")
+
 token = ""
 line=1
 retArray=[]
-
 
 def retARRAYTK(state,token):
     global retArray
