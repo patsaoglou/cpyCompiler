@@ -32,7 +32,7 @@ def fib(x):
      
 def isPrime(x):
 #{
-    ## declarations for isPrime ##
+    ## declarations for isPrime  ##
     #int i
 
     def divides(x,y):

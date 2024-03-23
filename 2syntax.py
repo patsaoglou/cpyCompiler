@@ -1,3 +1,6 @@
+# PATSAOGLOU PANTELEIMON 5102
+# IATRAKIS IOANNIS 5116
+
 from lex2 import *
 import sys
 
@@ -56,6 +59,7 @@ token = ""
 line=1
 retArray=[]
 
+
 def retARRAYTK(state,token):
     global retArray
     retArray=[]
@@ -66,6 +70,7 @@ def retARRAYTK(state,token):
 def lex():
     global line
     global retArray
+    start_cmd_line = 0
     EOFflag=0
     state=0
     i=0
@@ -127,11 +132,11 @@ def lex():
                 token.pop()
                 token.append('<=')
                 index=9 #<=
-                print(index)
+                
             else:
                 index=10 #<
                 file.seek(pos) #xreiazetai gt exw koitaxei to epomeno kai den einai to = opote prepeina epistrafei
-                print(index)
+                
         elif element=='>': #katastasi 5
             token.append(element)
             pos = file.tell()
@@ -140,11 +145,11 @@ def lex():
                 token.pop()
                 token.append('>=')
                 index=11 #>=
-                print(index)
+                
             else:
                 index=12 #>
                 file.seek(pos) #xreiazetai gt exw koitaxei to epomeno kai den einai to = opote prepeina epistrafei
-                print(index)
+                
         elif element=='!': #katastasi 6
             token.append(element)
             pos = file.tell() #thesi mesa sto arxeio prin diabasw to epomeno xaraktira gia na dw sw ti katastasi kattaligw
@@ -153,12 +158,12 @@ def lex():
                 token.pop()
                 token.append('!=')
                 index=13 #komple katastasi !=
-                print(index)
+                
             else:
                 token.append(next_element)
                 index=14 #ERROR
                 print("Invalid character ", token[-1], "is not expected after a '!' in line ",line)
-                print("index",index)
+                
         elif element=='=': #katastasi 7
             token.append(element)
             pos = file.tell()
@@ -167,11 +172,11 @@ def lex():
                 token.pop()
                 token.append('==')
                 index=15 #==
-                print(index)
+                
             else:
                 index=16 #=
                 file.seek(pos) #xreiazetai gt exw koitaxei to epomeno kai den einai to = opote prepeina epistrafei
-                print(index)
+                
         elif element==',':
             index=17
             token.append(element)
@@ -195,12 +200,15 @@ def lex():
                 index=22 # #{
             elif next_element=='#': #katastasi 9
                 token.append(next_element)
+                start_cmd_line = line
                 while True:                    
                     next_element=file.read(1)
                     if not next_element: #EOF pianei kai kena
                         index=23 #array error bazw anti eoftk
-                        print(index)
-                        print("EOF: Open comments and not closed ")
+                    
+                        print("EOF: Open comments and not closed in line",start_cmd_line)
+                        fail_exit("Exit")
+                        
                         EOFflag=1
                         break
                     
@@ -209,7 +217,7 @@ def lex():
                         next_next=file.read(1)
                         if next_next=='#':
                             index=24 # exoun ## kleisei ta sxolia
-                            print(index)
+                            
                             state=0
                             break          
 
@@ -263,15 +271,14 @@ def lex():
             index=33 #error
             print("Find character '",token[-1],"' that is not in the language in line",line)
             
-        print('line',line)
         if i >=31:
             index=0 #ipervenei ta 30 char
         state=array[state][index]
         
-    if state==K1 or state==K2:# or state==MINUSTK:
+    if state==K1 or state==K2:
             if not element.isspace(): #elegxos den einai kenos char na epistrefei stin proigoumeni thesi (an einai kenos apla katanalwnetai kai proxwrame)
                 file.seek(pos1) #epistrefoume stin proigoumeni thesi afou exoume krifokoitaxei to epomeno
-            token.pop() ########################################################################################################################
+            token.pop()
 
     
     if state >=100:
@@ -358,8 +365,6 @@ def parse_while_loop():
                 fail_exit("Expected '#{' or simple block after ':' but got invalid token.")              
         else:
             fail_exit("Expected ':' after while loop but did not get it.")
-        
-        print("while statement block close. Current token is: ", current_token)
 
 
 def parse_if_statement():
@@ -389,8 +394,6 @@ def parse_if_statement():
                 fail_exit("Expected '#{' or simple block after ':' but got invalid token.")              
         else:
             fail_exit("Expected ':' after if statement but did not get it.")
-        
-        print("if statement block close. Current token is: ", current_token)
 
     if current_token[0] == ELIFTK:
         current_token = lex()
@@ -416,7 +419,6 @@ def parse_if_statement():
                 fail_exit("Expected '#{' or simple block after ':' but got invalid token.")           
         else:
             fail_exit("Expected ':' after elif statement but did not get it.")
-        print("elif statement block close. Current token is: ", current_token)
 
     
     if current_token[0] == ELSETK:
@@ -440,8 +442,6 @@ def parse_if_statement():
 
         else:
             fail_exit("Expected ':' after else statement but did not get it.")
-
-        print("else statement block close. Current token is: ", current_token)
     return
    
 
@@ -590,12 +590,10 @@ def parse_expression():
         got_nothing_before_operator = False
 
     if got_nothing_before_operator == False:
-        print("In operator check:", current_token)
         if current_token[0] in [ADDTK, MINUSTK, MULTK, DIVTK, MODTK]:
             current_token = lex()
             parse_expression()
         else:
-            print("Return from parse_expression")
             return
         
     
@@ -640,7 +638,6 @@ def parse_function_call():
             current_token = lex()
 
             parse_expression()
-            print("ret")
         
         if current_token[0] == CPARTK:
             current_token = lex()
@@ -692,6 +689,7 @@ def parse_int_type_declaration():
 
         if current_token[0] == ANAGNORTK:
             current_token = lex()
+
         else:
             fail_exit("Expected arphanumeric on #int declaration.")
     else:
@@ -796,7 +794,6 @@ def parse():
     current_token = lex()
 
     while (current_token[0] != EOFTK):
-        input()
         parse_instance() 
     
     print("EOF reached. Syntax analysis finised succesfully.")
@@ -810,6 +807,4 @@ if __name__ == "__main__":
     else:
         file = open(sys.argv[1], 'r')
         parse()
-
-
-    
+   

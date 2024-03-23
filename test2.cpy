@@ -71,7 +71,7 @@ i=1
 while i <=5: 
 #{
     print(counter())
-    i = i - 40000
+    i = i - 1
 #}
 
 
