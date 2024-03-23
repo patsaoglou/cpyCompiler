@@ -690,6 +690,21 @@ def parse_int_type_declaration():
         if current_token[0] == ANAGNORTK:
             current_token = lex()
 
+            if current_token[0] == COMMATK:
+                current_token = lex()
+
+                if current_token[0] == ANAGNORTK:
+                    while current_token[0] == ANAGNORTK:
+                        current_token = lex()
+
+                        if current_token[0] == COMMATK:
+                            current_token = lex()
+                            continue
+                        else:
+                            break
+                else:
+                    fail_exit("Expected arphanumeric after ',' on #int declaration but did not get it.")
+
         else:
             fail_exit("Expected arphanumeric on #int declaration.")
     else:

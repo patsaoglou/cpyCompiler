@@ -1,11 +1,10 @@
 ## test program ##
 
 #int var
-#int counterFunctionCalls
 
 def function1(x,y):
 #{
-    #int m
+    #int m , i
     global var
     var = 3
     if var>y and var>y:
@@ -33,12 +32,17 @@ def function2(x):
 
 def custom(x,y):
     #{
-        #int a
+        #int a, b , c
         a=2
         global counterFunctionCalls
         counterFunctionCalls = counterFunctionCalls + 1
-        if y%(a+1)!=(y//x)*x: ##loop##
-            return 1
+        if not y%(a+1)!=(y//x)*x: ##loop##
+        #{
+            #int a
+            a=2
+            global counterFunctionCalls
+            counterFunctionCalls = counterFunctionCalls + 1
+        #}
         else:
             return 0
     #}
