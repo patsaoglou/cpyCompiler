@@ -1,0 +1,10 @@
+Names:
+PATSAOGLOU PANTELEIMON 5102
+IATRAKIS IOANNIS 5116
+
+Command: 
+python phase1.py <xyz.cpy File>
+
+For our Tests:
+python phase1.py test.cpy
+python phase1.py test2.cpy

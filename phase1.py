@@ -1,9 +1,7 @@
 # PATSAOGLOU PANTELEIMON 5102
 # IATRAKIS IOANNIS 5116
 
-from lex2 import *
 import sys
-
 
 #define TOKENS
 EOFTK = -1
@@ -270,6 +268,7 @@ def lex():
             print("Find character '",token[-1],"' that is not in the language in line",line)
             
         if i >=31:
+            fail_exit("Found alphanumeric with length >30. Analisis failed.")
             index=0 #ipervenei ta 30 char
         state=array[state][index]
         
