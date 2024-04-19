@@ -97,7 +97,7 @@ def leap(year):
 #int i
 counterFunctionCalls = 0
 
-i = int(input()) + 1
+i = int(input())
 
 print(i)
 

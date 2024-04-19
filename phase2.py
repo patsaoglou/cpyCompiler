@@ -83,18 +83,30 @@ def new_temp():
 
     return newTemp
 
-def get_next_quad_idx():
+def next_quad():
     global quadNum
     
     return quadNum
 
-def backpatch(quad_list_for_backpatch, label):
+def empty_list():
+    return []
+
+def make_list(x):
+    return [x]
+
+def merge(list_1, list_2):
+    return list_1 + list_2
+
+def backpatch(quads_with_label_to_backpatch, label):
     global quadsList
 
-    for quad in quad_list_for_backpatch:
-        for main_quad in quadsList:
-            if quad[0] == main_quad[0]:
-                main_quad[3] = label
+    for quad_with_label in quads_with_label_to_backpatch:
+        for quad in quadsList:
+            if quad_with_label == quad[0]:
+                quad[4] = label
+
+
+
 def print_quad_list():
     global quadsList
 
@@ -355,7 +367,7 @@ def lex():
             return retARRAYTK(RETURNTK,token)
         if new_token=='input':
             return retARRAYTK(INPUTTK,token)
-        if new_token=='int':
+        if new_token=='int':    
             return retARRAYTK(INTCASTTK,token)
         if new_token=='and':
             return retARRAYTK(ANDTK,token)
@@ -524,44 +536,101 @@ def parse_complex_block():
         current_token = lex()
     return
 
+def parse_code_block():
+    global current_token 
+
+
+def parse_statement():
+    global current_token 
+
+def parse_simple_statement():
+    global current_token
+
+
+def parse_structured_statement():
+    global current_token
+
+
+
+
+def parse_if_stat():
+    global current_token
+   
+
 def parse_condition():
     global current_token
     
+    B1 = bool_term()
+
+    while current_token[0] == ORTK:
+
+        backpatch(B1[1], next_quad())
+
+        B2 = bool_term()
+
+        B1[0] = merge(B1[0], B2[0]) # True
+        B1[1] = B2[1] # False
+
+    return B1
+
+def bool_term():
+    global current_token
+
+    Q1 = bool_factor()
+
+    while current_token[0] == ANDTK:
+        backpatch(Q1[0], next_quad())
+
+        Q2 = bool_factor()
+
+        Q1[1] = merge(Q1[1], Q2[1]) # False
+        Q1[0] = Q2[0] # True
+
+    return Q1 
+
+def bool_factor():
+    global current_token
+
+    not_flag = False
+
+    current_token = lex()
+
     if current_token[0] == NOTTK:
+        not_flag = True
         current_token = lex()
 
-    if current_token[0] == ANAGNORTK:
-        parse_expression()
+    e1_place = parse_expression()
 
-        # if current_token[0] == OPARTK:
-        #     parse_function_call()
+    relop = current_token[1]
 
-        if current_token[0] in [LTTK, GTTK, LETK, GETK, EQUALTK, NOT_EQUALTK]:
-            current_token = lex()
-            
-            parse_expression()
-            if current_token[0] == UPDOWNDOTTK:
-                if current_token[0] == COMMENTK:
-                    current_token = lex()
-                return
-        else:
-            fail_exit("Expected comparison token token but did not get it.")
-        if current_token[0] in [ANDTK, ORTK]: #not 
-            while current_token[0] in [ANDTK, ORTK]:
-                current_token = lex()
-                parse_condition()
+    if relop not in [LTTK, GTTK, LETK, GETK, EQUALTK, NOT_EQUALTK]:
+        fail_exit("Expected comparison token but didn't get it")
 
-    elif current_token[0] == OPARTK:
-        current_token = lex()
-        
-        parse_condition()
-        
-        if current_token[0] != CPARTK:
-            fail_exit("Expected ')' on condition but did not get it")
-        else: 
-            current_token = lex()
-    else:
-        fail_exit("Expected comparison or '(' on condition but did not get it")
+    current_token = lex()
+
+    e2_place = parse_expression()
+
+    R_true = make_list(next_quad())
+    gen_quad(relop, e1_place, e2_place, "_")
+
+    R_false = make_list(next_quad())
+
+    gen_quad("JUMP", "_", "_", "_",)
+
+    if (not_flag):
+        return [R_false, R_true]
+
+    return [R_true, R_false]
+
+
+def ret():
+    global current_token
+
+    current_token = lex()
+
+    tPlace = parse_expression()
+
+    gen_quad("ret", tPlace, "_", "_")
 
 def parse_expression():
     global current_token
@@ -572,7 +641,6 @@ def parse_expression():
     # x + y*5
     t1Place = term()
 
-    # current_token = lex()
 
     while current_token[0] == ADDTK or current_token[0] == MINUSTK:
         op = current_token[1]
@@ -593,8 +661,6 @@ def term():
     global current_token
     t1Place = factor()
 
-    current_token = lex()
-
     while current_token[0] == MULTK or current_token[0] == DIVTK or current_token[0] == MODTK:
         op = current_token[1]
 
@@ -608,9 +674,6 @@ def term():
 
         t1Place = w
 
-        current_token = lex()
-
-
     return t1Place
 
 def factor():
@@ -621,22 +684,60 @@ def factor():
         sign = "-"
         current_token = lex()
     if current_token[0] == INTEGERTK:
-        return sign+current_token[1] # integer factor
+        integer_factor = sign+current_token[1]
+        current_token = lex()
+        return  integer_factor # integer factor
     elif current_token[0] == OPARTK:
         current_token = lex()
         expression_factor = parse_expression()
 
         if current_token[0] != CPARTK:
             fail_exit("Expected close parenthesis on factor")
+        current_token = lex()
+
         return expression_factor
     
     elif current_token[0] == ANAGNORTK:
-        if (sign == "-"):
+        id = current_token[1]
+        
+        current_token = lex()
+        if current_token[0] == OPARTK:
+            
+            w = parse_function_call(id, True)
+
+            if sign == "-":
+                w_new = new_temp()
+
+                gen_quad("*", w, "-1", w_new)
+                current_token = lex()
+
+                return w_new
+            else:
+                current_token = lex()
+
+                return w               
+
+        elif (sign == "-"):
             w = new_temp()
-            gen_quad("*", current_token[1], "-1", w)
+            gen_quad("*", id, "-1", w)
             return w
-        return current_token[1]
-    # function call
+        return id
+    
+def idtail():
+    global current_token
+
+    current_token = lex()
+
+    while current_token[0] != CPARTK:
+        t1Place = parse_expression()
+
+        gen_quad("PAR",t1Place,"CV","_")
+
+        if current_token[0] == COMMATK:
+            current_token = lex()
+        elif current_token[0] != CPARTK:
+            fail_exit("Expected close parenthesis")
+
 
 def parse_function_definition_parameters():
     global current_token
@@ -660,29 +761,17 @@ def parse_function_definition_parameters():
     else:
         fail_exit("Expected alphanumeric after ',' function definition.") 
 
-def parse_function_call():
+def parse_function_call(function_name, ret_needed):
     global current_token
 
-    if current_token[0] == OPARTK:
-        current_token = lex()
-        
-        if (current_token[0] == CPARTK):
-            current_token = lex()
-            return
-        parse_expression()
-        
-        while current_token[0] == COMMATK:
-            current_token = lex()
-
-            parse_expression()
-        
-        if current_token[0] == CPARTK:
-            current_token = lex()
-        else:
-            fail_exit("Function call expressions not enclosed in ')'.")
-        
+    idtail()
+    if ret_needed == True:
+        w = new_temp()
+        gen_quad("PAR", w, "RET", "_")
+        gen_quad("call", function_name, "_","_")
+        return w
     else:
-        fail_exit("Expected '(' after alphanumeric on function call.")
+        gen_quad("call", function_name, "_","_")
 
 def parse_print_call():
     global current_token
@@ -693,11 +782,14 @@ def parse_print_call():
         if current_token[0] == OPARTK:
             current_token = lex()
 
-            parse_expression()
-            if current_token[0] == CPARTK:
-                current_token = lex()
+            expression_to_print = parse_expression()
 
-                return
+            if current_token[0] == CPARTK:
+                if expression_to_print == None:
+                    expression_to_print = "_" # print without parameter
+                gen_quad("out", expression_to_print, "_", "_")
+                
+                current_token = lex()
             else:
                 fail_exit("Expected ')' after print function call but got invalid token.")
 
@@ -787,12 +879,57 @@ def parse_function_definition():
     else:
         # no function definition found
         return 
+
+def parse_int():
+    global current_token
+
+    if current_token[0] == OPARTK:
+        current_token = lex()
+
+        if current_token[0] == INPUTTK:
+            current_token = lex()
             
+            if current_token[0] == OPARTK:
+                current_token = lex()
+
+                if current_token[0] == CPARTK:
+                    current_token = lex()
+                    print(current_token[1])
+
+                    if current_token[0] == CPARTK:
+                        w = new_temp()
+
+                        gen_quad("inp", "_", "_", w)
+
+                        current_token = lex()
+
+                        return w  
+                    
+                    else:
+                        fail_exit("Expected ')' after 'int(input()' call but did not get it")
+
+                else:
+                    fail_exit("Expected ')' after 'input(' call but did not get it")
+
+            else:
+                fail_exit("Expected '(' after input call but did not get it")
+
+        else:
+            fail_exit("Expected input call after 'int(' cast but did not get it")
+
+    else:
+        fail_exit("Expected '(' after int cast but did not get it")
+    
+
+
 def parse_instance():
     global current_token
 
     if current_token[0] == INTTYPETK:
         parse_int_type_declaration()
+
+    elif current_token[0] == RETURNTK:
+        ret()
     elif current_token[0] == DEF2TK:
         current_token = lex()
 
@@ -807,7 +944,8 @@ def parse_instance():
     elif current_token[0] == GLOBALTK:
         parse_global_declaration()
     elif current_token[0] == IFTK:
-        parse_if_statement()
+        current_token 
+        parse_condition()
     elif current_token[0] == DEFTK:
         parse_function_definition()
     elif current_token[0] == COMMENTK:
@@ -818,19 +956,22 @@ def parse_instance():
         # current token in this case can be a function call or an assignment 
         
         id = current_token[1]  
-        
         current_token = lex()
         
         if current_token[0] == OPARTK:
-            parse_function_call()
-        elif current_token[0] == ASSIGNTK:
-            
+            parse_function_call(id, False)
+        elif current_token[0] == ASSIGNTK:            
             current_token = lex()
 
-            ePlace = parse_expression()
-            
-            gen_quad("=", ePlace, "_", id)
+            if current_token[0] == INTCASTTK:
+                current_token = lex()
 
+                ePlace = parse_int()
+                gen_quad("=", ePlace, "_", id)
+
+            else:
+                ePlace = parse_expression()            
+                gen_quad("=", ePlace, "_", id)
         else:
             fail_exit("Function call '(' or variable assignment '=' expected after alphanumeric")
     elif current_token[0] == ERRORTK:

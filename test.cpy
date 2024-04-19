@@ -1,1 +1,1 @@
-pantelis =  y  * -4  -6 + 4 + 4 
+if not x<4 and y+1 == x or y == x:
