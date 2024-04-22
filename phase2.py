@@ -536,26 +536,116 @@ def parse_complex_block():
         current_token = lex()
     return
 
+
+
 def parse_code_block():
     global current_token 
 
+def statement_or_block():
+    global current_token, line 
+
+    if current_token[0] == OBLOCKTK:
+        temp_line = line
+
+        current_token = lex()
+        
+        while current_token[0] != CBLOCKTK:
+            if current_token[0] == EOFTK:
+                err = "Code block opened in line "+str(temp_line) +" and did not closed before EOF"
+                fail_exit(err)
+            parse_statement()
+        current_token = lex()
+    else:
+         parse_statement()
 
 def parse_statement():
-    global current_token 
-
-def parse_simple_statement():
     global current_token
 
+    if current_token[0] == ANAGNORTK:
 
-def parse_structured_statement():
-    global current_token
+        id = current_token[1]  
+        current_token = lex()
+        
+        if current_token[0] == ASSIGNTK:            
+            current_token = lex()
 
+            if current_token[0] == INTCASTTK:
+                current_token = lex()
 
+                ePlace = parse_int()
+                gen_quad("=", ePlace, "_", id)
+
+            else:
+                ePlace = parse_expression()            
+                gen_quad("=", ePlace, "_", id)
+        else:
+            fail_exit("Expected '=' on simple statement structure but did not get it")
+    elif current_token[0] == PRINTTK:
+        parse_print_call()
+    elif current_token[0] == RETURNTK:
+        ret()
+
+    elif current_token[0] == IFTK:
+        parse_if_stat()
+    elif current_token[0] == WHILETK:
+        # parse_while
+        pass
+    else:
+        fail_exit("Expected simple statement structure but did not get it")
 
 
 def parse_if_stat():
     global current_token
-   
+
+    B_cond = parse_condition()
+
+    if current_token[0] == UPDOWNDOTTK:
+        current_token = lex()
+
+        p1_quad = next_quad()
+        print(B_cond[0])
+        
+        statement_or_block()
+
+        jumps = make_list(next_quad()) 
+
+        gen_quad("JUMP", "_", "_", "_")
+
+        p2_quad = next_quad()
+
+        backpatch(B_cond[0], p1_quad)
+        backpatch(B_cond[1], p2_quad)
+
+        if current_token[0] == ELIFTK:
+            parse_if_stat()
+            p2_quad = next_quad()
+        if current_token[0] == ELSETK:
+            parse_else()
+            
+            jump_else = make_list(next_quad()) 
+            gen_quad("JUMP", "_", "_", "_")
+            p2_quad = next_quad()
+            
+            jumps = merge(jumps,jump_else)
+
+        backpatch(jumps, p2_quad)
+
+    else:
+        fail_exit("Expected ':' after if statement but did not get it")
+
+def parse_else():
+    global current_token
+
+    current_token = lex()
+    
+    if current_token[0] == UPDOWNDOTTK:
+        current_token = lex()
+
+        statement_or_block()
+    else:
+        fail_exit("Expected ':' after if statement but did not get it")    
+
+
 
 def parse_condition():
     global current_token
@@ -603,7 +693,7 @@ def bool_factor():
 
     relop = current_token[1]
 
-    if relop not in [LTTK, GTTK, LETK, GETK, EQUALTK, NOT_EQUALTK]:
+    if current_token[0] not in [LTTK, GTTK, LETK, GETK, EQUALTK, NOT_EQUALTK]:
         fail_exit("Expected comparison token but didn't get it")
 
     current_token = lex()
@@ -927,9 +1017,6 @@ def parse_instance():
 
     if current_token[0] == INTTYPETK:
         parse_int_type_declaration()
-
-    elif current_token[0] == RETURNTK:
-        ret()
     elif current_token[0] == DEF2TK:
         current_token = lex()
 
@@ -944,8 +1031,7 @@ def parse_instance():
     elif current_token[0] == GLOBALTK:
         parse_global_declaration()
     elif current_token[0] == IFTK:
-        current_token 
-        parse_condition()
+        parse_if_stat()
     elif current_token[0] == DEFTK:
         parse_function_definition()
     elif current_token[0] == COMMENTK:
@@ -978,6 +1064,7 @@ def parse_instance():
         fail_exit("Got ERROR token from lexxer. Analysis failed.")
 
     else:
+        print(current_token)
         fail_exit("Invalid token found. Syntax analysis failed.")
 
     return
