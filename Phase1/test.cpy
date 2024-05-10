@@ -1,7 +1,7 @@
 #int counterFunctionCalls
 #int pantelis
 
-def max3(x, y):
+def max3(x, y, z):
 #{
     #int m
     global counterFunctionCalls

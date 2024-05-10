@@ -1,0 +1,16 @@
+1 + counterFunctionCalls 1 T_1  
+2 = T_1 _ counterFunctionCalls  
+3 * x x T_2  
+4 ret T_2 _ _  
+5 + counterFunctionCalls 1 T_3  
+6 = T_3 _ counterFunctionCalls  
+7 PAR x CV _  
+8 PAR T_4 RET _  
+9 call sqr _ _  
+10 PAR x CV _  
+11 PAR T_5 RET _  
+12 call sqr _ _  
+13 * T_4 T_5 T_6  
+14 = T_6 _ y  
+15 ret y _ _  
+16 = 1 _ x  

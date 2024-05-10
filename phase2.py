@@ -73,7 +73,7 @@ def gen_quad(op, op1, op2, op3):
     quadsList.append(newQuad)
     quadNum += 1
     
-    print_quad_list()
+    # print_quad_list()
 
 def new_temp():
     global tempNum
@@ -104,17 +104,6 @@ def backpatch(quads_with_label_to_backpatch, label):
         for quad in quadsList:
             if quad_with_label == quad[0]:
                 quad[4] = label
-
-
-
-def print_quad_list():
-    global quadsList
-
-    input()
-
-    for quad in quadsList:
-        print(quad)
-
 
 def retARRAYTK(state,token):
     global retArray
@@ -780,8 +769,9 @@ def parse_function_definition():
 
             if (current_token[0] == OPARTK):
                 current_token = lex()
-
-                parse_id_list()
+                
+                if current_token[0] != CPARTK:
+                    parse_id_list()
 
                 if(current_token[0] == CPARTK):
                     current_token = lex()
@@ -952,11 +942,35 @@ def parse():
     current_token = lex()
 
     parse_program()
-    
+
     if current_token[0] == ERRORTK:
         fail_exit("Got ERROR token from lexxer. Analysis failed.")
-    
-    print("EOF reached. Syntax analysis finised succesfully.")
+       
+    int_out()
+
+    # sym_out()
+
+    print("\nEOF reached. Syntax analysis finised succesfully.")
+
+def sym_out():
+    global quadsList
+
+    name = sys.argv[1].split(".")[0]
+    sym_file = open(name+".sym", "w")
+
+    print(line)
+    sym_file.write(line)
+
+def int_out():
+    global quadsList
+
+    name = sys.argv[1].split(".")[0]
+    int_file = open(name+".int", "w")
+
+    for quad in quadsList:
+        line = str(quad[0])+" "+quad[1]+" "+quad[2]+" "+quad[3]+" "+str(quad[4])
+        print(line)
+        int_file.write(line+"  \n")
 
 if __name__ == "__main__":
     if len(sys.argv[1:]) == 0:
@@ -967,3 +981,53 @@ if __name__ == "__main__":
         file = open(sys.argv[1], 'r')
         parse()
    
+# ---------------------- Pinakas Sym ----------------------
+
+scope_list = []
+current_scope_level = 0
+
+class Entity:
+    def __init__(self, name, offset = None, label = None, arguments = None, framelength = None):
+        self.name = name
+        self.offset = offset
+        self.label = label
+        self.arguments = arguments if arguments is not None else []
+        self.framelength = framelength
+
+    def __str__(self):
+        return f"Name: {self.name}, Offset: {self.offset}, Label: {self.label}, Arguments: {self.arguments}, Framelength: {self.framelength}"
+
+class Scope:
+    def __init__(self, name, level = 0):
+        self.name = name
+        self.level = level
+        self.entities = []
+
+    def add_entity(self, entity):
+        self.entities.append(entity)
+
+    def __str__(self):
+        entity_list = "\n".join([f"\t{entity}" for entity in self.entities])
+        return f"Scope Name: {self.name}, Level: {self.level}\nEntities:\n{entity_list}"
+
+def create_scope(name):
+    global current_scope_level
+    current_scope_level += 1
+    scope = Scope(name, current_scope_level)
+    scope_list.append(scope)
+    return scope
+
+def remove_scope():
+    global current_scope_level
+    if scope_list:
+        scope_list.pop()
+        current_scope_level -= 1
+
+
+# def print_quad_list():
+#     global quadsList
+
+#     input()
+
+#     for quad in quadsList:
+#         print(quad)
