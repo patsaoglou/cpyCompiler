@@ -1,0 +1,180 @@
+
+
+################################################################
+
+
+
+Scope Name: PROGRAM, Level: 0
+Entities:
+	Name: counterFunctionCalls, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: max3, Offset: None, Label: 1, Arguments: ['x', 'y', 'z'], Framelength: None, Type: NOT_GLOBAL
+
+Scope Name: max3, Level: 1
+Entities:
+	Name: x, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: y, Offset: 16, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: z, Offset: 20, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: m, Offset: 24, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: counterFunctionCalls, Offset: None, Label: None, Arguments: [], Framelength: None, Type: GLOBAL
+	Name: T_1, Offset: 28, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+
+################################################################
+
+
+
+Scope Name: PROGRAM, Level: 0
+Entities:
+	Name: counterFunctionCalls, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: max3, Offset: None, Label: 1, Arguments: ['x', 'y', 'z'], Framelength: 32, Type: NOT_GLOBAL
+	Name: fib, Offset: None, Label: 18, Arguments: ['x'], Framelength: None, Type: NOT_GLOBAL
+
+Scope Name: fib, Level: 1
+Entities:
+	Name: x, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: counterFunctionCalls, Offset: None, Label: None, Arguments: [], Framelength: None, Type: GLOBAL
+	Name: T_2, Offset: 16, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_3, Offset: 20, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_4, Offset: 24, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_5, Offset: 28, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_6, Offset: 32, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_7, Offset: 36, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+
+################################################################
+
+
+
+Scope Name: PROGRAM, Level: 0
+Entities:
+	Name: counterFunctionCalls, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: max3, Offset: None, Label: 1, Arguments: ['x', 'y', 'z'], Framelength: 32, Type: NOT_GLOBAL
+	Name: fib, Offset: None, Label: 18, Arguments: ['x'], Framelength: 40, Type: NOT_GLOBAL
+	Name: isPrime, Offset: None, Label: 41, Arguments: ['x'], Framelength: None, Type: NOT_GLOBAL
+
+Scope Name: isPrime, Level: 1
+Entities:
+	Name: x, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: i, Offset: 16, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: divides, Offset: None, Label: 41, Arguments: ['x', 'y'], Framelength: None, Type: NOT_GLOBAL
+
+Scope Name: divides, Level: 2
+Entities:
+	Name: x, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: y, Offset: 16, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: counterFunctionCalls, Offset: None, Label: None, Arguments: [], Framelength: None, Type: GLOBAL
+	Name: T_8, Offset: 20, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_9, Offset: 24, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_10, Offset: 28, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+
+################################################################
+
+
+
+Scope Name: PROGRAM, Level: 0
+Entities:
+	Name: counterFunctionCalls, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: max3, Offset: None, Label: 1, Arguments: ['x', 'y', 'z'], Framelength: 32, Type: NOT_GLOBAL
+	Name: fib, Offset: None, Label: 18, Arguments: ['x'], Framelength: 40, Type: NOT_GLOBAL
+	Name: isPrime, Offset: None, Label: 41, Arguments: ['x'], Framelength: None, Type: NOT_GLOBAL
+
+Scope Name: isPrime, Level: 1
+Entities:
+	Name: x, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: i, Offset: 16, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: divides, Offset: None, Label: 41, Arguments: ['x', 'y'], Framelength: 32, Type: NOT_GLOBAL
+	Name: counterFunctionCalls, Offset: None, Label: None, Arguments: [], Framelength: None, Type: GLOBAL
+	Name: T_11, Offset: 20, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_12, Offset: 24, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_13, Offset: 28, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+
+################################################################
+
+
+
+Scope Name: PROGRAM, Level: 0
+Entities:
+	Name: counterFunctionCalls, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: max3, Offset: None, Label: 1, Arguments: ['x', 'y', 'z'], Framelength: 32, Type: NOT_GLOBAL
+	Name: fib, Offset: None, Label: 18, Arguments: ['x'], Framelength: 40, Type: NOT_GLOBAL
+	Name: isPrime, Offset: None, Label: 41, Arguments: ['x'], Framelength: 32, Type: NOT_GLOBAL
+	Name: quad, Offset: None, Label: 68, Arguments: ['x'], Framelength: None, Type: NOT_GLOBAL
+
+Scope Name: quad, Level: 1
+Entities:
+	Name: x, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: y, Offset: 16, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: sqr, Offset: None, Label: 68, Arguments: ['x'], Framelength: None, Type: NOT_GLOBAL
+
+Scope Name: sqr, Level: 2
+Entities:
+	Name: x, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: counterFunctionCalls, Offset: None, Label: None, Arguments: [], Framelength: None, Type: GLOBAL
+	Name: T_14, Offset: 16, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_15, Offset: 20, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+
+################################################################
+
+
+
+Scope Name: PROGRAM, Level: 0
+Entities:
+	Name: counterFunctionCalls, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: max3, Offset: None, Label: 1, Arguments: ['x', 'y', 'z'], Framelength: 32, Type: NOT_GLOBAL
+	Name: fib, Offset: None, Label: 18, Arguments: ['x'], Framelength: 40, Type: NOT_GLOBAL
+	Name: isPrime, Offset: None, Label: 41, Arguments: ['x'], Framelength: 32, Type: NOT_GLOBAL
+	Name: quad, Offset: None, Label: 68, Arguments: ['x'], Framelength: None, Type: NOT_GLOBAL
+
+Scope Name: quad, Level: 1
+Entities:
+	Name: x, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: y, Offset: 16, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: sqr, Offset: None, Label: 68, Arguments: ['x'], Framelength: 24, Type: NOT_GLOBAL
+	Name: counterFunctionCalls, Offset: None, Label: None, Arguments: [], Framelength: None, Type: GLOBAL
+	Name: T_16, Offset: 20, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_17, Offset: 24, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_18, Offset: 28, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_19, Offset: 32, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+
+################################################################
+
+
+
+Scope Name: PROGRAM, Level: 0
+Entities:
+	Name: counterFunctionCalls, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: max3, Offset: None, Label: 1, Arguments: ['x', 'y', 'z'], Framelength: 32, Type: NOT_GLOBAL
+	Name: fib, Offset: None, Label: 18, Arguments: ['x'], Framelength: 40, Type: NOT_GLOBAL
+	Name: isPrime, Offset: None, Label: 41, Arguments: ['x'], Framelength: 32, Type: NOT_GLOBAL
+	Name: quad, Offset: None, Label: 68, Arguments: ['x'], Framelength: 36, Type: NOT_GLOBAL
+	Name: leap, Offset: None, Label: 83, Arguments: ['year'], Framelength: None, Type: NOT_GLOBAL
+
+Scope Name: leap, Level: 1
+Entities:
+	Name: year, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: counterFunctionCalls, Offset: None, Label: None, Arguments: [], Framelength: None, Type: GLOBAL
+	Name: T_20, Offset: 16, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_21, Offset: 20, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_22, Offset: 24, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_23, Offset: 28, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+
+################################################################
+
+
+
+Scope Name: PROGRAM, Level: 0
+Entities:
+	Name: counterFunctionCalls, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: max3, Offset: None, Label: 1, Arguments: ['x', 'y', 'z'], Framelength: 32, Type: NOT_GLOBAL
+	Name: fib, Offset: None, Label: 18, Arguments: ['x'], Framelength: 40, Type: NOT_GLOBAL
+	Name: isPrime, Offset: None, Label: 41, Arguments: ['x'], Framelength: 32, Type: NOT_GLOBAL
+	Name: quad, Offset: None, Label: 68, Arguments: ['x'], Framelength: 36, Type: NOT_GLOBAL
+	Name: leap, Offset: None, Label: 83, Arguments: ['year'], Framelength: 32, Type: NOT_GLOBAL
+	Name: i, Offset: 16, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_24, Offset: 20, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_25, Offset: 24, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_26, Offset: 28, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_27, Offset: 32, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_28, Offset: 36, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_29, Offset: 40, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_30, Offset: 44, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_31, Offset: 48, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_32, Offset: 52, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL

@@ -51,10 +51,10 @@ ANDTK=134 #and
 ORTK=135 #or
 NOTTK=136 #not
 
-
 token = ""
 line=1
 retArray=[]
+
 # generally before each call lex() is already called
 
 current_token = None
@@ -63,7 +63,75 @@ is_in_function_definition = 0
 quadsList = []
 quadNum = 1
 tempNum = 1
+# ---------------------- Pinakas Sym ---------------------- #
 
+sym_file = None
+scope_list = []
+current_scope_level = 0
+
+class Entity:
+    def __init__(self, name, offset = None, label = None, arguments = None, framelength = None, type = "NOT_GLOBAL"):
+        self.name = name
+        self.offset = offset
+        self.label = label
+        self.arguments = arguments if arguments is not None else []
+        self.framelength = framelength
+        self.type = type
+
+    def __str__(self):
+        return f"Name: {self.name}, Offset: {self.offset}, Label: {self.label}, Arguments: {self.arguments}, Framelength: {self.framelength}, Type: {self.type}"
+
+class Scope:
+    def __init__(self, name, level = 0):
+        self.name = name
+        self.level = level
+        self.entities = []
+        self.previous_offset = 0
+
+    def add_entity(self, entity):
+        self.entities.append(entity)
+
+    def __str__(self):
+        entity_list = "\n".join([f"\t{entity}" for entity in self.entities])
+        return f"\n\nScope Name: {self.name}, Level: {self.level}\nEntities:\n{entity_list}"
+
+def create_scope(name):
+    global current_scope_level
+    scope = Scope(name, current_scope_level)
+    scope_list.append(scope)
+    current_scope_level += 1
+    return scope
+
+def close_scope():
+    global current_scope_level, scope_list 
+    if scope_list:
+        sym_out(scope_list)
+        last_scope = scope_list.pop()
+        framelength = last_scope.entities[-1].offset + 4
+        current_scope_level -= 1        
+
+        scope_list[current_scope_level-1].entities[-1].framelength = framelength
+
+def add_entity(newEntity, isFuction = False, isGlobal = False):
+    global current_scope_level, scope_list
+
+    scope_entity_list = scope_list[current_scope_level-1].entities
+
+    if isFuction == False and isGlobal == False:
+        
+        if len(scope_entity_list) == 0:
+            scope_list[current_scope_level-1].previous_offset = 12
+            newEntity.offset = scope_list[current_scope_level-1].previous_offset
+        else:
+            scope_list[current_scope_level-1].previous_offset += 4
+            newEntity.offset = scope_list[current_scope_level-1].previous_offset
+
+    if isGlobal:
+        newEntity.type = "GLOBAL"
+        
+    scope_entity_list.append(newEntity)  
+
+# ------------------------------------------------------------------- #
 def gen_quad(op, op1, op2, op3):
     global quadsList
     global quadNum
@@ -80,6 +148,9 @@ def new_temp():
 
     newTemp = "T_" + str(tempNum)
     tempNum += 1
+    
+    temp_entity = Entity(newTemp)
+    add_entity(temp_entity)
 
     return newTemp
 
@@ -725,7 +796,7 @@ def parse_global_declaration():
     if current_token[0] == GLOBALTK:
         current_token = lex()
 
-        parse_id_list()
+        parse_id_list(isGlobal = True)
 
 def parse_int_type_declaration():
     global current_token
@@ -735,9 +806,16 @@ def parse_int_type_declaration():
         
         parse_id_list()
 
-def parse_id_list():
-    global current_token
+def parse_id_list(isParam = False, isGlobal = False):
+    global current_token, current_scope_level, scope_list
     if current_token[0] == ANAGNORTK:
+        
+        entity = Entity(current_token[1])
+        
+        add_entity(entity, isGlobal = isGlobal)
+        if isParam == True:
+            last_entity = scope_list[current_scope_level-2].entities[-1]
+            last_entity.arguments.append(entity.name)
         current_token = lex()
 
         if current_token[0] == COMMATK:
@@ -745,6 +823,14 @@ def parse_id_list():
 
             if current_token[0] == ANAGNORTK:
                 while current_token[0] == ANAGNORTK:
+
+                    entity = Entity(current_token[1])
+
+                    add_entity(entity, isGlobal = isGlobal)
+                    if isParam == True:
+                        last_entity = scope_list[current_scope_level-2].entities[-1]
+                        last_entity.arguments.append(entity.name)
+        
                     current_token = lex()
 
                     if current_token[0] == COMMATK:
@@ -765,13 +851,19 @@ def parse_function_definition():
         current_token = lex()
 
         if current_token[0] == ANAGNORTK:
+            entity = Entity(current_token[1])
+            entity.label = next_quad()
+            add_entity(entity, True)
+
+            create_scope(current_token[1])
+
             current_token = lex()
 
             if (current_token[0] == OPARTK):
                 current_token = lex()
                 
                 if current_token[0] != CPARTK:
-                    parse_id_list()
+                    parse_id_list(True)
 
                 if(current_token[0] == CPARTK):
                     current_token = lex()
@@ -786,7 +878,9 @@ def parse_function_definition():
                             check_for_comment()
 
                             parse_function_block()
-
+                            
+                            close_scope()
+                                                        
                             current_token = lex()
 
                         else:
@@ -909,7 +1003,9 @@ def parse_main():
         fail_exit("Expected 'main' after #def but did not get it. Got '" + current_token[1]+ "'.")
 
 def parse_program():
-    global current_token
+    global current_token, scope_list, current_scope_level
+    
+    create_scope("PROGRAM")
 
     # DECLARATIONS #INT
     while current_token[0] == INTTYPETK:
@@ -947,19 +1043,24 @@ def parse():
         fail_exit("Got ERROR token from lexxer. Analysis failed.")
        
     int_out()
-
-    # sym_out()
+    sym_out(scope_list)
 
     print("\nEOF reached. Syntax analysis finised succesfully.")
 
-def sym_out():
-    global quadsList
+def sym_out(scopelist_state):
+    global sym_file
 
-    name = sys.argv[1].split(".")[0]
-    sym_file = open(name+".sym", "w")
+    if sym_file is None:
+        name = sys.argv[1].split(".")[0]
+        sym_file = open(name+".sym", "w")
 
-    print(line)
-    sym_file.write(line)
+    sym_file.write("\n\n################################################################\n\n")
+
+    for scope in scope_list:
+        sym_file.write(scope.__str__())
+
+    if current_scope_level == 1:
+        sym_file.close()
 
 def int_out():
     global quadsList
@@ -972,6 +1073,8 @@ def int_out():
         print(line)
         int_file.write(line+"  \n")
 
+    int_file.close()
+
 if __name__ == "__main__":
     if len(sys.argv[1:]) == 0:
         print("Pass a .cpy file as an argument.")
@@ -981,53 +1084,3 @@ if __name__ == "__main__":
         file = open(sys.argv[1], 'r')
         parse()
    
-# ---------------------- Pinakas Sym ----------------------
-
-scope_list = []
-current_scope_level = 0
-
-class Entity:
-    def __init__(self, name, offset = None, label = None, arguments = None, framelength = None):
-        self.name = name
-        self.offset = offset
-        self.label = label
-        self.arguments = arguments if arguments is not None else []
-        self.framelength = framelength
-
-    def __str__(self):
-        return f"Name: {self.name}, Offset: {self.offset}, Label: {self.label}, Arguments: {self.arguments}, Framelength: {self.framelength}"
-
-class Scope:
-    def __init__(self, name, level = 0):
-        self.name = name
-        self.level = level
-        self.entities = []
-
-    def add_entity(self, entity):
-        self.entities.append(entity)
-
-    def __str__(self):
-        entity_list = "\n".join([f"\t{entity}" for entity in self.entities])
-        return f"Scope Name: {self.name}, Level: {self.level}\nEntities:\n{entity_list}"
-
-def create_scope(name):
-    global current_scope_level
-    current_scope_level += 1
-    scope = Scope(name, current_scope_level)
-    scope_list.append(scope)
-    return scope
-
-def remove_scope():
-    global current_scope_level
-    if scope_list:
-        scope_list.pop()
-        current_scope_level -= 1
-
-
-# def print_quad_list():
-#     global quadsList
-
-#     input()
-
-#     for quad in quadsList:
-#         print(quad)
