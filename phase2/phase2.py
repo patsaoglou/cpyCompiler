@@ -107,7 +107,18 @@ def close_scope():
     if scope_list:
         sym_out(scope_list)
         last_scope = scope_list.pop()
-        framelength = last_scope.entities[-1].offset + 4
+
+        last_entity_with_offset = len(last_scope.entities) - 1
+        while(last_scope.entities[last_entity_with_offset].offset == None):
+            last_entity_with_offset-=1
+
+            if(last_entity_with_offset<0):
+                current_scope_level -= 1        
+
+                scope_list[current_scope_level-1].entities[-1].framelength = 12
+                return
+
+        framelength = last_scope.entities[last_entity_with_offset].offset + 4
         current_scope_level -= 1        
 
         scope_list[current_scope_level-1].entities[-1].framelength = framelength
@@ -141,7 +152,7 @@ def gen_quad(op, op1, op2, op3):
     quadsList.append(newQuad)
     quadNum += 1
     
-    # print_quad_list()
+    # print(newQuad)
 
 def new_temp():
     global tempNum
@@ -988,6 +999,8 @@ def parse_main():
     if current_token[0] == MAINTK:
         current_token = lex()
         
+        check_for_comment()
+        
         # DECLARATIONS #INT
         while current_token[0] == INTTYPETK:
             parse_int_type_declaration()
@@ -1023,6 +1036,7 @@ def parse_program():
     
     if current_token[0] == DEF2TK:
         current_token = lex()
+
 
         parse_main()
     else:

@@ -1,0 +1,15 @@
+Names:
+PATSAOGLOU PANTELEIMON 5102
+IATRAKIS IOANNIS 5116
+
+Command: 
+python phase2.py <xyz.cpy File>
+
+For our Tests:
+python phase2.py test.cpy
+python phase2.py test2.cpy
+
+Notes:
+1) Argument 1 is used for .int and .sym files
+2) If there is a lex runtime error, it is propably because .cpy code file needs one extra line at the end of the file
+3) There is a possibility we missed a comment check at some .cpy code patterns/regions
