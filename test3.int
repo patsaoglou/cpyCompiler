@@ -1,0 +1,17 @@
+1 begin_block counter _ _  
+2 = 0 _ count  
+3 <= count 10 5  
+4 JUMP _ _ 8  
+5 + count 1 T_1  
+6 = T_1 _ count  
+7 JUMP _ _ 3  
+8 ret count _ _  
+9 end_block counter _ _ 
+
+
+10 begin_main _ _ _  
+11 PAR T_2 RET _  
+12 call counter _ _  
+13 = T_2 _ i  
+14 end_main _ _ _  
+15 halt _ _ _  
