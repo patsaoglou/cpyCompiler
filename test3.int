@@ -1,19 +1,23 @@
 1 begin_block counter _ _  
-2 = 0 _ count  
-3 <= count 10 5  
-4 JUMP _ _ 8  
-5 + count 1 T_1  
-6 = T_1 _ count  
-7 JUMP _ _ 3  
-8 ret count _ _  
-9 end_block counter _ _  
-10 begin_main _ _ _  
-11 PAR x CV _  
-12 PAR T_2 RET _  
-13 call counter _ _  
-14 = T_2 _ x  
-15 + i x T_3  
-16 + T_3 1 T_4  
-17 = T_4 _ i  
-18 end_main _ _ _  
-19 halt _ _ _  
+
+2 begin_block second _ _  
+3 + 1 1 T_1  
+4 = T_1 _ count  
+5 end_block second _ _  
+
+6 begin_block third _ _  
+7 + 1 1 T_2  
+8 = T_2 _ count  
+9 end_block third _ _  
+
+10 <= x 10 12  
+11 JUMP _ _ 15  
+12 + x 1 T_3  
+13 = T_3 _ x  
+14 JUMP _ _ 10  
+15 end_block counter _ _  
+
+16 begin_main _ _ _  
+17 = 1 _ i  
+18 halt _ _ _  
+19 end_main _ _ _  

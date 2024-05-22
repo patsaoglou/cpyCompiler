@@ -1,19 +1,19 @@
 def counter():
 #{
-    #int count
+    #int x
     def second():
         #{
             #int count
-            count=0
-            while count <=10:
-            #{
-                count=count+1
-            #}
-           
+            count= 1 + 1
         #}
-    while count <=10:
+    def third():
+        #{
+            #int count
+            count= 1 + 1
+        #}
+    while x <=10:
     #{
-        count=count+1
+        x=x+1
     #}
     
 #}
@@ -21,7 +21,7 @@ def counter():
 #def main
 
 #int i ,x 
-x = counter(x)
 
-i = i + x  +1 
+
+i = 1
 

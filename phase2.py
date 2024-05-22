@@ -105,6 +105,7 @@ def create_scope(name):
 
 def close_scope():
     global current_scope_level, scope_list 
+    print(scope_list[-1].__str__())
     if scope_list:
         sym_out(scope_list)
         last_scope = scope_list.pop()
@@ -154,6 +155,7 @@ block_name_list = []
 # --------------------------Telikos------------------------ #
 assembly_quads = []
 assembly_label_counter = 0
+starting_quad = 0
 # Do something in case of Globals
 def gnlvcode(v):
     global current_scope_level, scope_list, assembly_quads 
@@ -176,7 +178,7 @@ def gnlvcode(v):
     if entity_found:
         assembly_out("      addi t0,t0,-"+str(entity_found.offset))
     else:
-        # print(scope_list[-1].__str__())
+        int_out()
         fail_exit("Variable '"+v+"' not found in parent scopes")
 
 def gnlvcode_local(v, reg, is_storing = False):
@@ -295,12 +297,15 @@ def assembly_quad_from_quad(quad):
         
 
 
-def gen_assembly_fuction_quads(starting_quad):
-    global quadsList
-    # print(starting_quad)
+def gen_assembly_fuction_quads():
+    global quadsList, starting_quad # global because issue in case of nested function declaration
+    # print(starting_quad)          # starting quad of parent not the initial quad 
+                                    # we dont want start again regenarating child function
     while(quadsList[starting_quad][1] != "end_block"):
         assembly_quad_from_quad(quadsList[starting_quad])
         starting_quad +=1
+    starting_quad += 1  # begin quad of parent fuction (end_block child + 1 quad for parent's)
+    
 
 def gen_assembly_main_quads(starting_quad):
     global quadsList
@@ -313,7 +318,7 @@ def gen_assembly_main_quads(starting_quad):
         assembly_quad_from_quad(quadsList[starting_quad])
         starting_quad +=1
     
-    assembly_out("L"+str(quadsList[starting_quad+1][0]) +":")
+    assembly_out("L"+str(quadsList[starting_quad][0]) +":")
     assembly_out("      li a0,0")
     assembly_out("      li a7,93")
     assembly_out("      ecall")
@@ -1048,7 +1053,7 @@ def parse_id_list(isParam = False, isGlobal = False):
         fail_exit("Expected arphanumeric on declaration (ID_LIST).")
 
 def parse_function_definition():
-    global current_token, block_name_list
+    global current_token, block_name_list, starting_quad
 
     if current_token[0] == DEFTK:
         current_token = lex()
@@ -1088,8 +1093,8 @@ def parse_function_definition():
                             parse_function_block()
                             
                             gen_quad("end_block",block_name_list.pop(),"_","_")
-
-                            gen_assembly_fuction_quads(starting_quad)
+    
+                            gen_assembly_fuction_quads()
 
                             close_scope()
                                                         
@@ -1245,9 +1250,9 @@ def parse_program():
 
         parse_main()
 
-        gen_quad("end_main","_","_","_")
-
         gen_quad("halt","_","_","_")
+
+        gen_quad("end_main","_","_","_")
         
         gen_assembly_main_quads(main_starting_quad)
 

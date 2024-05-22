@@ -10,10 +10,54 @@ Entities:
 
 Scope Name: counter, Level: 1
 Entities:
-	Name: count, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: x, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
 	Name: second, Offset: None, Label: 3, Arguments: [], Framelength: None, Type: NOT_GLOBAL
 
 Scope Name: second, Level: 2
 Entities:
 	Name: count, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
 	Name: T_1, Offset: 16, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+
+################################################################
+
+
+
+Scope Name: PROGRAM, Level: 0
+Entities:
+	Name: counter, Offset: None, Label: 2, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+
+Scope Name: counter, Level: 1
+Entities:
+	Name: x, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: second, Offset: None, Label: 3, Arguments: [], Framelength: 20, Type: NOT_GLOBAL
+	Name: third, Offset: None, Label: 7, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+
+Scope Name: third, Level: 2
+Entities:
+	Name: count, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_2, Offset: 16, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+
+################################################################
+
+
+
+Scope Name: PROGRAM, Level: 0
+Entities:
+	Name: counter, Offset: None, Label: 2, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+
+Scope Name: counter, Level: 1
+Entities:
+	Name: x, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: second, Offset: None, Label: 3, Arguments: [], Framelength: 20, Type: NOT_GLOBAL
+	Name: third, Offset: None, Label: 7, Arguments: [], Framelength: 20, Type: NOT_GLOBAL
+	Name: T_3, Offset: 16, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+
+################################################################
+
+
+
+Scope Name: PROGRAM, Level: 0
+Entities:
+	Name: counter, Offset: None, Label: 2, Arguments: [], Framelength: 20, Type: NOT_GLOBAL
+	Name: i, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: x, Offset: 16, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
