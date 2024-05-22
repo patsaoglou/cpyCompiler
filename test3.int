@@ -6,12 +6,14 @@
 6 = T_1 _ count  
 7 JUMP _ _ 3  
 8 ret count _ _  
-9 end_block counter _ _ 
-
-
+9 end_block counter _ _  
 10 begin_main _ _ _  
-11 PAR T_2 RET _  
-12 call counter _ _  
-13 = T_2 _ i  
-14 end_main _ _ _  
-15 halt _ _ _  
+11 PAR x CV _  
+12 PAR T_2 RET _  
+13 call counter _ _  
+14 = T_2 _ x  
+15 + i x T_3  
+16 + T_3 1 T_4  
+17 = T_4 _ i  
+18 end_main _ _ _  
+19 halt _ _ _  

@@ -11,14 +11,9 @@ Entities:
 Scope Name: counter, Level: 1
 Entities:
 	Name: count, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
-	Name: T_1, Offset: 16, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: second, Offset: None, Label: 3, Arguments: [], Framelength: None, Type: NOT_GLOBAL
 
-################################################################
-
-
-
-Scope Name: PROGRAM, Level: 0
+Scope Name: second, Level: 2
 Entities:
-	Name: counter, Offset: None, Label: 2, Arguments: [], Framelength: 20, Type: NOT_GLOBAL
-	Name: i, Offset: 4, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
-	Name: T_2, Offset: 8, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: count, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_1, Offset: 16, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL

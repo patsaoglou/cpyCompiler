@@ -1,17 +1,27 @@
 def counter():
 #{
     #int count
-    count=0
+    def second():
+        #{
+            #int count
+            count=0
+            while count <=10:
+            #{
+                count=count+1
+            #}
+           
+        #}
     while count <=10:
     #{
         count=count+1
     #}
-    return count
-
+    
 #}
 
 #def main
 
-#int i
+#int i ,x 
+x = counter(x)
 
-i = counter()
+i = i + x  +1 
+

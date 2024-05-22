@@ -135,7 +135,10 @@ def add_entity(newEntity, isFuction = False, isGlobal = False):
             scope_list[current_scope_level-1].previous_offset = 12
             newEntity.offset = scope_list[current_scope_level-1].previous_offset
         else:
-            scope_list[current_scope_level-1].previous_offset += 4
+            if scope_list[current_scope_level-1].previous_offset == 0:
+                scope_list[current_scope_level-1].previous_offset = 12
+            else:
+                scope_list[current_scope_level-1].previous_offset += 4
             newEntity.offset = scope_list[current_scope_level-1].previous_offset
 
     if isGlobal:
@@ -150,7 +153,7 @@ block_name_list = []
 
 # --------------------------Telikos------------------------ #
 assembly_quads = []
-
+assembly_label_counter = 0
 # Do something in case of Globals
 def gnlvcode(v):
     global current_scope_level, scope_list, assembly_quads 
@@ -158,7 +161,7 @@ def gnlvcode(v):
     check_scope = current_scope_level - 2
     entity_found = None
     
-    assembly_quads.append("lw t0,-4(sp)")
+    assembly_out("      lw t0,-4(sp)")
 
     while (check_scope >=0):
         for entity in scope_list[check_scope].entities:
@@ -168,20 +171,22 @@ def gnlvcode(v):
                 entity_found = entity
                 break
         check_scope -= 1
-        assembly_quads.append("lw t0,-4(t0)")
+        assembly_out("      lw t0,-4(t0)")
     
     if entity_found:
-        assembly_quads.append("addi t0,t0,-"+entity_found.offset)
+        assembly_out("      addi t0,t0,-"+str(entity_found.offset))
     else:
+        # print(scope_list[-1].__str__())
         fail_exit("Variable '"+v+"' not found in parent scopes")
 
 def gnlvcode_local(v, reg, is_storing = False):
     global current_scope_level,scope_list,assembly_quads 
-    
+    entity_found = None
     check_scope = current_scope_level - 1
+    # print(check_scope)
     
-    for entity in check_scope.entities:
-        if entity.offset == None:
+    for entity in scope_list[check_scope].entities:
+        if entity.offset == None and entity.type == "GLOBAL":
             break
         if entity.name == v:
             entity_found = entity
@@ -189,27 +194,27 @@ def gnlvcode_local(v, reg, is_storing = False):
     
     if entity_found:
         if is_storing:
-            assembly_quads.append("sw "+reg+",-"+entity_found.offset+"(sp)")
+            assembly_out("      sw "+reg+",-"+str(entity_found.offset)+"(sp)")
         else:
-            assembly_quads.append("lw "+reg+",-"+entity_found.offset+"(sp)")
+            assembly_out("      lw "+reg+",-"+str(entity_found.offset)+"(sp)")
 
     return entity_found
 
 def gnlvcode_global(v, reg, is_storing = False):
     global current_scope_level,scope_list,assembly_quads 
-    
+    entity_found = None
     check_scope = current_scope_level - 1
     
-    for entity in check_scope.entities:
+    for entity in scope_list[check_scope].entities:
         if entity.name == v and entity.type == "GLOBAL":
             entity_found = entity
             break
     
     if entity_found:
         if is_storing:
-            assembly_quads.append("sw "+reg+",-"+entity_found.offset+"(gp)")
+            assembly_out("      sw "+reg+",-"+str(entity_found.offset)+"(gp)")
         else:
-            assembly_quads.append("lw "+reg+",-"+entity_found.offset+"(gp)")
+            assembly_out("      lw "+reg+",-"+str(entity_found.offset)+"(gp)")
 
     return entity_found
 
@@ -217,7 +222,7 @@ def loadvr(v, reg):
     global assembly_quads
     
     if v.isdigit():
-        assembly_quads.append("li "+reg+","+str(v))
+        assembly_out("      li "+reg+","+str(v))
 
     elif gnlvcode_local(v, reg) != None:
         return
@@ -225,16 +230,103 @@ def loadvr(v, reg):
         return
     else: # progonous
         gnlvcode(v)
-        assembly_quads.append("lw "+reg+",(t0)")
+        assembly_out("      lw "+reg+",(t0)")
 
-def storerv(v, reg):
+def storerv(reg, v):
     if gnlvcode_local(v, reg, True) != None:
         return
     elif gnlvcode_global(v, reg, True) != None:
         return
     else:
         gnlvcode(v)
-        assembly_quads.append("sw "+reg+",(t0)")
+        assembly_out("      sw "+reg+",(t0)")
+
+def assembly_quad_from_quad(quad):
+    global assembly_label_counter
+    print(quad)
+    if quad[1] == "JUMP":
+        assembly_out("L"+str(quad[0])+":")
+
+        assembly_out("      j L"+str(quad[4]))
+
+    elif quad[1] == '=':
+        if quad[2].isdigit() or quad[2].isalpha() or 'T_' in quad[2]:
+            assembly_out("L"+str(quad[0])+":")
+            loadvr(quad[2],"t0")
+            storerv("t0", quad[4])
+    elif quad[1] in ["+","-","%","//","*"]:
+        assembly_out("L"+str(quad[0])+":")
+        loadvr(quad[2],"t1")
+        loadvr(quad[3],"t2")
+        
+        if quad[1] == "+":
+            assembly_out("      add t1, t2, t1") 
+        elif quad[1] == "-":
+            assembly_out("      sub t1, t2, t1")  
+        elif quad[1] == "*":
+            assembly_out("      mul t1, t2, t1") 
+        elif quad[1] == "%":
+            assembly_out("      rem t1, t2, t1")  
+        elif quad[1] == "//":
+            assembly_out("      div t1, t2, t1")  
+        storerv("t1",quad[4])
+    elif quad[1] in ["<","<=",">=",">","==","!="]:
+        assembly_out("L" + str(quad[0]) + ":")
+        loadvr(quad[2], "t1")
+        loadvr(quad[3], "t2")
+
+        if quad[1] == "<":
+            assembly_out("      blt t1, t2, L" + str(quad[4]))
+        elif quad[1] == "<=":
+            assembly_out("      ble t1, t2, L" + str(quad[4]))
+        elif quad[1] == ">":
+            assembly_out("      bgt t1, t2, L" + str(quad[4]))
+        elif quad[1] == ">=":
+            assembly_out("      bge t1, t2, L" + str(quad[4])) 
+        elif quad[1] == "==":
+            assembly_out("      beq t1, t2, L" + str(quad[4])) 
+        elif quad[1] == "!=":
+            assembly_out("      bne t1, t2, L" + str(quad[4]))
+
+    elif quad[1] == "call" or quad[1] == "PAR":
+        assembly_out("      addi fp,sp,"+ str(get_main_framelength()))
+        
+
+        
+
+
+def gen_assembly_fuction_quads(starting_quad):
+    global quadsList
+    # print(starting_quad)
+    while(quadsList[starting_quad][1] != "end_block"):
+        assembly_quad_from_quad(quadsList[starting_quad])
+        starting_quad +=1
+
+def gen_assembly_main_quads(starting_quad):
+    global quadsList
+    
+    assembly_out("Lmain:")
+    assembly_out("      addi sp,sp,"+ str(get_main_framelength()))
+    assembly_out("      mv gp,sp")
+    
+    while(quadsList[starting_quad][1] != "end_main"):
+        assembly_quad_from_quad(quadsList[starting_quad])
+        starting_quad +=1
+    
+    assembly_out("L"+str(quadsList[starting_quad+1][0]) +":")
+    assembly_out("      li a0,0")
+    assembly_out("      li a7,93")
+    assembly_out("      ecall")
+
+    
+    
+
+def get_main_framelength():
+    global scope_list
+
+    return scope_list[0].entities[-1].offset + 4
+
+
 
 
 # --------------------------------------------------------- #
@@ -965,6 +1057,8 @@ def parse_function_definition():
             block_name_list.append(current_token[1])
             gen_quad("begin_block",current_token[1],"_","_")
 
+            starting_quad = next_quad() - 1
+
             entity = Entity(current_token[1])
             entity.label = next_quad()
             add_entity(entity, True)
@@ -994,6 +1088,8 @@ def parse_function_definition():
                             parse_function_block()
                             
                             gen_quad("end_block",block_name_list.pop(),"_","_")
+
+                            gen_assembly_fuction_quads(starting_quad)
 
                             close_scope()
                                                         
@@ -1121,10 +1217,12 @@ def parse_main():
         fail_exit("Expected 'main' after #def but did not get it. Got '" + current_token[1]+ "'.")
 
 def parse_program():
-    global current_token, scope_list, current_scope_level
+    global current_token, scope_list, current_scope_level,assembly_label_counter
     
     create_scope("PROGRAM")
-
+    
+    assembly_out("L0:\n     j Lmain")
+    
     # DECLARATIONS #INT
     while current_token[0] == INTTYPETK:
         parse_int_type_declaration()
@@ -1143,11 +1241,15 @@ def parse_program():
         current_token = lex()
 
         gen_quad("begin_main","_","_","_")
+        main_starting_quad = next_quad() - 1
 
         parse_main()
 
         gen_quad("end_main","_","_","_")
+
         gen_quad("halt","_","_","_")
+        
+        gen_assembly_main_quads(main_starting_quad)
 
     else:
         fail_exit("Did not found main declaration. Got '" + current_token[1] + "'.")
@@ -1168,20 +1270,17 @@ def parse():
        
     int_out()
     sym_out(scope_list)
-    assembly_out()
     print("\nEOF reached. Syntax analysis finised succesfully.")
 
 
-def assembly_out():
-    global assembly_quads
-    name = sys.argv[1].split(".")[0]
+def assembly_out(assembly_quad):
+    global assembly_file
     
-    assembly_file = open(name+".s", "w")
-    
-    for assembly_quad in assembly_quads:
-        assembly_file.write(assembly_quad+"\n")    
-    
-    assembly_file.close()
+    if assembly_file is None:
+        name = sys.argv[1].split(".")[0]
+        assembly_file = open(name+".s", "w")
+  
+    assembly_file.write("\n"+assembly_quad)    
     
 def sym_out(scopelist_state):
     global sym_file
