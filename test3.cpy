@@ -1,15 +1,16 @@
+#int x 
 def counter():
 #{
-    #int x, i 
-
-    x=counter() 
-
-
-    x = x + 1
+    #int x
+    def pow():
+    #{
+        #int x
+        x = x +1
+    #}
+    print(x)
 #}
 
 #def main
 
-#int i ,x 
-i =  counter()
-
+#int i
+i = 1

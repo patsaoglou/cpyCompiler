@@ -168,13 +168,15 @@ def gnlvcode(v):
     
     assembly_out("      lw t0,-4(sp)")
 
-    while (check_scope >=0):
+    while (check_scope >0):
         for entity in scope_list[check_scope].entities:
-            if entity.offset == None:
+            if entity.offset == None and entity.type != "GLOBAL":
                 break
             if entity.name == v:
                 entity_found = entity
                 break
+        if entity != None:
+            break
         check_scope -= 1
         assembly_out("      lw t0,-4(t0)")
     
@@ -188,12 +190,17 @@ def gnlvcode_local(v, reg, is_storing = False):
     global current_scope_level,scope_list,assembly_quads 
     entity_found = None
     check_scope = current_scope_level - 1
-    # print(check_scope)
-    
+   
     for entity in scope_list[check_scope].entities:
-        if entity.offset == None and entity.type == "GLOBAL":
-            break
+        # print(entity.name+" "+str(entity.offset)+" "+entity.type)
+        # if entity.offset == None and entity.label != "GLOBAL":
+        #     break
         if entity.name == v:
+            if entity.offset == None:
+                if entity.type == "GLOBAL":
+                    return gnlvcode_global(v, reg, is_storing)
+                else:
+                    continue
             entity_found = entity
             break
     
@@ -208,10 +215,9 @@ def gnlvcode_local(v, reg, is_storing = False):
 def gnlvcode_global(v, reg, is_storing = False):
     global current_scope_level,scope_list,assembly_quads 
     entity_found = None
-    check_scope = current_scope_level - 1
-    
-    for entity in scope_list[check_scope].entities:
-        if entity.name == v and entity.type == "GLOBAL":
+    # immediatly checks first scope for global
+    for entity in scope_list[0].entities:
+        if entity.name == v:
             entity_found = entity
             break
     
@@ -231,8 +237,8 @@ def loadvr(v, reg):
 
     elif gnlvcode_local(v, reg) != None:
         return
-    elif gnlvcode_global(v, reg) != None:
-        return
+    # elif gnlvcode_global(v, reg) != None:
+    #     return
     else: # progonous
         gnlvcode(v)
         assembly_out("      lw "+reg+",(t0)")
@@ -240,8 +246,8 @@ def loadvr(v, reg):
 def storerv(reg, v):
     if gnlvcode_local(v, reg, True) != None:
         return
-    elif gnlvcode_global(v, reg, True) != None:
-        return
+    # elif gnlvcode_global(v, reg, True) != None:
+    #     return
     else:
         gnlvcode(v)
         assembly_out("      sw "+reg+",(t0)")
@@ -257,8 +263,8 @@ def assembly_quad_from_quad(quad):
     elif quad[1] == '=':
         if quad[2].isdigit() or quad[2].isalpha() or 'T_' in quad[2]:
             assembly_out("L"+str(quad[0])+":")
-            loadvr(quad[2],"t0")
-            storerv("t0", quad[4])
+            loadvr(quad[2],"t1")
+            storerv("t1", quad[4])
     elif quad[1] in ["+","-","%","//","*"]:
         assembly_out("L"+str(quad[0])+":")
         loadvr(quad[2],"t1")
@@ -294,6 +300,7 @@ def assembly_quad_from_quad(quad):
             assembly_out("      bne t1, t2, L" + str(quad[4]))
 
     elif quad[1] == "call":
+        # this is for recursion but we dont know frame length to reserve stack space
         if len(endblock)> 0 and endblock[-1] == quad[2]:
             function_entity = search_function(quad[2], True)
             print(scope_list[-1].__str__())
@@ -313,7 +320,16 @@ def assembly_quad_from_quad(quad):
 
 
     elif quad[1] == "PAR":
-        function_par.append(quad)            
+        function_par.append(quad)       
+    elif quad[1] == "out":
+        assembly_out("L"+str(quad[0])+":")
+
+        loadvr(quad[2],"a0")
+        assembly_out("      li a7, 1")
+        assembly_out("      ecall")
+        assembly_out("      la a0, str_nl")
+        assembly_out("      li a7, 4")
+        assembly_out("      ecall")
 
 
 def call_function(quad, function_entity):
@@ -357,6 +373,8 @@ def call_function(quad, function_entity):
     else:    
         assembly_out("      sw sp, -4(fp)")
     assembly_out("      addi sp, sp,"+str(function_entity[0].framelength))
+    assembly_out("      sw ra, (sp)")
+
     assembly_out("      jal L"+str(function_entity[0].label))
     assembly_out("      addi sp, sp,-"+str(function_entity[0].framelength))
     
@@ -425,13 +443,10 @@ def gen_assembly_main_quads(starting_quad):
         assembly_quad_from_quad(quadsList[starting_quad])
         starting_quad +=1
     
-    assembly_out("L"+str(quadsList[starting_quad][0]) +":")
+    assembly_out("L"+str(quadsList[starting_quad][0]-1) +":")
     assembly_out("      li a0,0")
     assembly_out("      li a7,93")
     assembly_out("      ecall")
-
-    
-    
 
 def get_main_framelength():
     global scope_list
@@ -1207,6 +1222,8 @@ def parse_function_definition():
     
                             gen_assembly_fuction_quads()
                             assembly_out("L" + str(next_quad()-1) + ":")
+                            assembly_out("      lw ra, 0(sp)")
+                            assembly_out("      jr ra")
                             
                             endblock.pop()
                             close_scope()
