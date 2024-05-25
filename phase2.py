@@ -109,6 +109,10 @@ def close_scope():
     if scope_list:
         sym_out(scope_list)
         last_scope = scope_list.pop()
+        if len(last_scope.entities) == 0:
+            current_scope_level -= 1
+            scope_list[current_scope_level-1].entities[-1].framelength = 12
+            return
 
         last_entity_with_offset = len(last_scope.entities) - 1
         while(last_scope.entities[last_entity_with_offset].offset == None):
@@ -129,6 +133,10 @@ def add_entity(newEntity, isFuction = False, isGlobal = False):
     global current_scope_level, scope_list
 
     scope_entity_list = scope_list[current_scope_level-1].entities
+
+    for entity in scope_entity_list:
+        if entity.name == newEntity.name:
+            fail_exit("Entity with name '"+newEntity.name+"' cannot be added to scope because this entity name already exists in current scope.")
 
     if isFuction == False and isGlobal == False:
         
@@ -184,7 +192,7 @@ def gnlvcode(v):
         assembly_out("      addi t0,t0,-"+str(entity_found.offset))
     else:
         int_out()
-        print(scope_list[0].__str__())
+        
         fail_exit("Variable '"+v+"' not found in parent scopes")
 
 def gnlvcode_local(v, reg, is_storing = False):
@@ -230,10 +238,17 @@ def gnlvcode_global(v, reg, is_storing = False):
 
     return entity_found
 
+def is_integer(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+
 def loadvr(v, reg):
     global assembly_quads
     
-    if v.isdigit():
+    if is_integer(v):
         assembly_out("      li "+reg+","+str(v))
 
     elif gnlvcode_local(v, reg) != None:
@@ -254,7 +269,7 @@ def storerv(reg, v):
         assembly_out("      sw "+reg+", 0(t0)")
 
 def assembly_quad_from_quad(quad):
-    global starting_quad, function_par, endblock
+    global starting_quad, function_par, endblock, ending_quad
     
     if quad[1] == "JUMP":
         assembly_out("L"+str(quad[0])+":")
@@ -262,25 +277,27 @@ def assembly_quad_from_quad(quad):
         assembly_out("      j L"+str(quad[4]))
 
     elif quad[1] == '=':
-        if quad[2].isdigit() or quad[2].isalpha() or 'T_' in quad[2]:
+        if is_integer(quad[2]) or quad[2].isalpha() or 'T_' in quad[2]:
             assembly_out("L"+str(quad[0])+":")
             loadvr(quad[2],"t1")
             storerv("t1", quad[4])
     elif quad[1] in ["+","-","%","//","*"]:
         assembly_out("L"+str(quad[0])+":")
+        # print(quad[2])
+       
         loadvr(quad[2],"t1")
         loadvr(quad[3],"t2")
         
         if quad[1] == "+":
-            assembly_out("      add t1, t2, t1") 
+            assembly_out("      add t1, t1, t2") 
         elif quad[1] == "-":
-            assembly_out("      sub t1, t2, t1")  
+            assembly_out("      sub t1, t1, t2")  
         elif quad[1] == "*":
-            assembly_out("      mul t1, t2, t1") 
+            assembly_out("      mul t1, t1, t2") 
         elif quad[1] == "%":
-            assembly_out("      rem t1, t2, t1")  
+            assembly_out("      rem t1, t1, t2")  
         elif quad[1] == "//":
-            assembly_out("      div t1, t2, t1")  
+            assembly_out("      div t1, t1, t2")  
         storerv("t1",quad[4])
     elif quad[1] in ["<","<=",">=",">","==","!="]:
         assembly_out("L" + str(quad[0]) + ":")
@@ -336,7 +353,16 @@ def assembly_quad_from_quad(quad):
         assembly_out("      li a7,5")
         assembly_out("      ecall")
 
-        storerv("a0",quad[4])
+    elif quad[1] == "ret":
+        assembly_out("L"+str(quad[0])+":")
+        
+        loadvr(quad[2],"t1")
+
+        assembly_out("      lw t0, -8(sp)")
+        assembly_out("      sw t1, 0(t0)")
+        assembly_out("      j L"+ str(ending_quad))
+
+
 
 
 
@@ -344,7 +370,7 @@ def assembly_quad_from_quad(quad):
 def call_function(quad, function_entity):
     global function_par, endblock, is_in_main_block
     caller_scope = 0
-
+    
     if len(endblock)>0:
         caller_scope = search_function(endblock[-1], True)[1]
 
@@ -356,7 +382,7 @@ def call_function(quad, function_entity):
         for par in function_par:
             if idx == 0:
                 assembly_out("L" + str(par[0]) + ":")
-                assembly_out("      addi fp, sp,"+str(function_entity[0].framelength))
+                assembly_out("      addi fp, sp,"+str(handle_none_framelength(function_entity[0])))
             if par[3] == "CV":
                 if idx != 0:
                     assembly_out("L" + str(par[0]) + ":")
@@ -374,22 +400,29 @@ def call_function(quad, function_entity):
 
     else:
         assembly_out("L" + str(quad[0]) + ":")
-        assembly_out("      addi fp, sp,"+str(function_entity[0].framelength))
+        assembly_out("      addi fp, sp,"+str(handle_none_framelength(function_entity[0])))
 
     if (caller_scope == function_entity[1]) and is_in_main_block == False: # if entities are brothers in the same scope
         assembly_out("      lw t0, -4(sp)")
         assembly_out("      sw t0, -4(fp)")
     else:    
         assembly_out("      sw sp, -4(fp)")
-    assembly_out("      addi sp, sp,"+str(function_entity[0].framelength))
+    assembly_out("      addi sp, sp,"+str(handle_none_framelength(function_entity[0])))
     assembly_out("      sw ra, 0(sp)")
 
     assembly_out("      jal L"+str(function_entity[0].label))
-    assembly_out("      addi sp, sp,-"+str(function_entity[0].framelength))
+    assembly_out("      addi sp, sp,-"+str(handle_none_framelength(function_entity[0])))
     
     function_par = []
     
     return function_entity[0]
+
+def handle_none_framelength(entity):
+    global scope_list
+    if entity.framelength == None: # recursion / framelength of previous scope entity is no yet return because scope is not removed
+        return scope_list[-1].entities[-1].offset + 4
+    else:
+        return entity.framelength
 
 def ret_offset(v):
     global current_scope_level, scope_list, assembly_quads 
@@ -425,7 +458,7 @@ def search_function(function_name, is_from_scope_check = False):
             starting_scope-=1
 
     if function_entity == None:
-        fail_exit("Function that is called cannot be found in known scopes."+ str(is_from_scope_check))
+        fail_exit("Function that is called cannot be found in known scopes.")
     
     return [function_entity, starting_scope]
 

@@ -6,9 +6,23 @@
 
 Scope Name: PROGRAM, Level: 0
 Entities:
-	Name: i, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
-	Name: increment, Offset: None, Label: 1, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: fib, Offset: None, Label: 1, Arguments: ['x'], Framelength: None, Type: NOT_GLOBAL
 
-Scope Name: increment, Level: 1
+Scope Name: fib, Level: 1
 Entities:
-	Name: T_1, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: x, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_1, Offset: 16, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_2, Offset: 20, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_3, Offset: 24, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_4, Offset: 28, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_5, Offset: 32, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+
+################################################################
+
+
+
+Scope Name: PROGRAM, Level: 0
+Entities:
+	Name: fib, Offset: None, Label: 1, Arguments: ['x'], Framelength: 36, Type: NOT_GLOBAL
+	Name: f, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_6, Offset: 16, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
