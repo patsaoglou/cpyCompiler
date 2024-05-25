@@ -165,25 +165,26 @@ def gnlvcode(v):
     
     check_scope = current_scope_level - 2
     entity_found = None
-    
     assembly_out("      lw t0,-4(sp)")
+    while check_scope >=0:
 
-    while (check_scope >0):
         for entity in scope_list[check_scope].entities:
             if entity.offset == None and entity.type != "GLOBAL":
                 break
             if entity.name == v:
                 entity_found = entity
                 break
-        if entity != None:
+        if entity_found != None:
             break
         check_scope -= 1
+        
         assembly_out("      lw t0,-4(t0)")
     
     if entity_found:
         assembly_out("      addi t0,t0,-"+str(entity_found.offset))
     else:
         int_out()
+        print(scope_list[0].__str__())
         fail_exit("Variable '"+v+"' not found in parent scopes")
 
 def gnlvcode_local(v, reg, is_storing = False):
@@ -241,7 +242,7 @@ def loadvr(v, reg):
     #     return
     else: # progonous
         gnlvcode(v)
-        assembly_out("      lw "+reg+",(t0)")
+        assembly_out("      lw "+reg+", 0(t0)")
 
 def storerv(reg, v):
     if gnlvcode_local(v, reg, True) != None:
@@ -250,7 +251,7 @@ def storerv(reg, v):
     #     return
     else:
         gnlvcode(v)
-        assembly_out("      sw "+reg+",(t0)")
+        assembly_out("      sw "+reg+", 0(t0)")
 
 def assembly_quad_from_quad(quad):
     global starting_quad, function_par, endblock
@@ -303,7 +304,7 @@ def assembly_quad_from_quad(quad):
         # this is for recursion but we dont know frame length to reserve stack space
         if len(endblock)> 0 and endblock[-1] == quad[2]:
             function_entity = search_function(quad[2], True)
-            print(scope_list[-1].__str__())
+            # print(scope_list[-1].__str__())
         else:
             function_entity = search_function(quad[2], False)
 
@@ -330,6 +331,14 @@ def assembly_quad_from_quad(quad):
         assembly_out("      la a0, str_nl")
         assembly_out("      li a7, 4")
         assembly_out("      ecall")
+    elif quad[1] == "inp":
+        assembly_out("L"+str(quad[0])+":")
+        assembly_out("      li a7,5")
+        assembly_out("      ecall")
+
+        storerv("a0",quad[4])
+
+
 
 
 def call_function(quad, function_entity):
@@ -357,7 +366,7 @@ def call_function(quad, function_entity):
             elif par[3] == "RET":
                 if idx != 0:
                     assembly_out("L" + str(par[0]) + ":")
-                assembly_out("      add t0, sp,-"+str(ret_offset(par[2])))
+                assembly_out("      addi t0, sp,-"+str(ret_offset(par[2])))
                 assembly_out("      sw t0, -8(fp)")                
             idx+=1
         assembly_out("L" + str(quad[0]) + ":")
@@ -373,7 +382,7 @@ def call_function(quad, function_entity):
     else:    
         assembly_out("      sw sp, -4(fp)")
     assembly_out("      addi sp, sp,"+str(function_entity[0].framelength))
-    assembly_out("      sw ra, (sp)")
+    assembly_out("      sw ra, 0(sp)")
 
     assembly_out("      jal L"+str(function_entity[0].label))
     assembly_out("      addi sp, sp,-"+str(function_entity[0].framelength))
@@ -1187,9 +1196,10 @@ def parse_function_definition():
             
             starting_quad = next_quad() - 1
             assembly_out("L" + str(starting_quad) + ":")
+            assembly_out("      sw ra,-0(sp)")
 
             entity = Entity(current_token[1])
-            entity.label = next_quad()
+            entity.label = next_quad() - 1
             add_entity(entity, True)
 
             create_scope(current_token[1])
@@ -1298,7 +1308,6 @@ def parse_int():
 
                 if current_token[0] == CPARTK:
                     current_token = lex()
-                    print(current_token[1])
 
                     if current_token[0] == CPARTK:
                         w = new_temp()
@@ -1356,7 +1365,9 @@ def parse_program():
     global current_token, scope_list, current_scope_level, assembly_label_counter, is_in_main_block
     
     create_scope("PROGRAM")
-    
+    assembly_out(""".data
+str_nl: .asciz "\\n"
+.text""")
     assembly_out("L0:\n     j Lmain")
     
     # DECLARATIONS #INT

@@ -1,16 +1,10 @@
-#int x 
-def counter():
+#int i
+def increment():
 #{
-    #int x
-    def pow():
-    #{
-        #int x
-        x = x +1
-    #}
-    print(x)
+    i = i +1
 #}
 
 #def main
-
-#int i
-i = 1
+#int x
+while i<10:
+    increment()
