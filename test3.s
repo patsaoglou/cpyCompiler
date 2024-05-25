@@ -38,15 +38,15 @@ L10:
       sub t1, t1, t2
       sw t1,-16(sp)
 L11:
-      addi fp, sp,36
+      addi s1, sp,36
       lw t1,-16(sp)
-      sw t1, -12(fp)
+      sw t1, -12(s1)
 L12:
       addi t0, sp,-20
-      sw t0, -8(fp)
+      sw t0, -8(s1)
 L13:
       lw t0, -4(sp)
-      sw t0, -4(fp)
+      sw t0, -4(s1)
       addi sp, sp,36
       sw ra, 0(sp)
       jal L1
@@ -57,15 +57,15 @@ L14:
       sub t1, t1, t2
       sw t1,-24(sp)
 L15:
-      addi fp, sp,36
+      addi s1, sp,36
       lw t1,-24(sp)
-      sw t1, -12(fp)
+      sw t1, -12(s1)
 L16:
       addi t0, sp,-28
-      sw t0, -8(fp)
+      sw t0, -8(s1)
 L17:
       lw t0, -4(sp)
-      sw t0, -4(fp)
+      sw t0, -4(s1)
       addi sp, sp,36
       sw ra, 0(sp)
       jal L1
@@ -89,14 +89,14 @@ Lmain:
       addi sp,sp,20
       mv gp,sp
 L23:
-      addi fp, sp,36
+      addi s1, sp,36
       li t1,3
-      sw t1, -12(fp)
+      sw t1, -12(s1)
 L24:
       addi t0, sp,-16
-      sw t0, -8(fp)
+      sw t0, -8(s1)
 L25:
-      sw sp, -4(fp)
+      sw sp, -4(s1)
       addi sp, sp,36
       sw ra, 0(sp)
       jal L1

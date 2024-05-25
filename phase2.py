@@ -1218,21 +1218,14 @@ def parse_id_list(isParam = False, isGlobal = False):
 
 def parse_function_definition():
     global current_token, block_name_list, starting_quad, ending_quad, endblock
-
     if current_token[0] == DEFTK:
         current_token = lex()
 
         if current_token[0] == ANAGNORTK:
             block_name_list.append(current_token[1])
             endblock.append(current_token[1])
-            gen_quad("begin_block",current_token[1],"_","_")
             
-            starting_quad = next_quad() - 1
-            assembly_out("L" + str(starting_quad) + ":")
-            assembly_out("      sw ra,-0(sp)")
-
             entity = Entity(current_token[1])
-            entity.label = next_quad() - 1
             add_entity(entity, True)
 
             create_scope(current_token[1])
@@ -1257,7 +1250,7 @@ def parse_function_definition():
                             current_token = lex()
                             check_for_comment()
 
-                            parse_function_block()
+                            parse_function_block(entity)
                             
                             ending_quad = next_quad()
                             
@@ -1287,8 +1280,8 @@ def parse_function_definition():
 
     # no function definition found
 
-def parse_function_block():
-    global current_token
+def parse_function_block(entity):
+    global current_token, starting_quad
 
     # DECLARATIONS #INT
     while current_token[0] == INTTYPETK:
@@ -1301,6 +1294,15 @@ def parse_function_block():
     while current_token[0] == DEFTK:
         parse_function_definition()
         check_for_comment()
+
+    gen_quad("begin_block",entity.name,"_","_")
+            
+    starting_quad = next_quad() - 1
+    assembly_out("L" + str(starting_quad) + ":")
+    assembly_out("      sw ra,-0(sp)")
+    entity.label = starting_quad
+
+
 
     check_for_comment()
     # DECLARATIONS GLOBALS
