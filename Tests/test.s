@@ -103,15 +103,15 @@ L31:
       sub t1, t1, t2
       sw t1,-20(sp)
 L32:
-      addi s1, sp,40
+      addi fp, sp,40
       lw t1,-20(sp)
-      sw t1, -12(s1)
+      sw t1, -12(fp)
 L33:
       addi t0, sp,-24
-      sw t0, -8(s1)
+      sw t0, -8(fp)
 L34:
       lw t0, -4(sp)
-      sw t0, -4(s1)
+      sw t0, -4(fp)
       addi sp, sp,40
       sw ra, 0(sp)
       jal L20
@@ -122,15 +122,15 @@ L35:
       sub t1, t1, t2
       sw t1,-28(sp)
 L36:
-      addi s1, sp,40
+      addi fp, sp,40
       lw t1,-28(sp)
-      sw t1, -12(s1)
+      sw t1, -12(fp)
 L37:
       addi t0, sp,-32
-      sw t0, -8(s1)
+      sw t0, -8(fp)
 L38:
       lw t0, -4(sp)
-      sw t0, -4(s1)
+      sw t0, -4(fp)
       addi sp, sp,40
       sw ra, 0(sp)
       jal L20
@@ -213,17 +213,17 @@ L59:
 L60:
       j L72
 L61:
-      addi s1, sp,32
+      addi fp, sp,32
       lw t1,-16(sp)
-      sw t1, -12(s1)
+      sw t1, -12(fp)
 L62:
       lw t1,-12(sp)
-      sw t1, -16(s1)
+      sw t1, -16(fp)
 L63:
       addi t0, sp,-24
-      sw t0, -8(s1)
+      sw t0, -8(fp)
 L64:
-      sw sp, -4(s1)
+      sw sp, -4(fp)
       addi sp, sp,32
       sw ra, 0(sp)
       jal L43
@@ -293,27 +293,27 @@ L82:
       lw t1,-20(sp)
       sw t1,-12(gp)
 L83:
-      addi s1, sp,24
+      addi fp, sp,24
       lw t1,-12(sp)
-      sw t1, -12(s1)
+      sw t1, -12(fp)
 L84:
       addi t0, sp,-24
-      sw t0, -8(s1)
+      sw t0, -8(fp)
 L85:
-      sw sp, -4(s1)
+      sw sp, -4(fp)
       addi sp, sp,24
       sw ra, 0(sp)
       jal L74
       addi sp, sp,-24
 L86:
-      addi s1, sp,24
+      addi fp, sp,24
       lw t1,-12(sp)
-      sw t1, -12(s1)
+      sw t1, -12(fp)
 L87:
       addi t0, sp,-28
-      sw t0, -8(s1)
+      sw t0, -8(fp)
 L88:
-      sw sp, -4(s1)
+      sw sp, -4(fp)
       addi sp, sp,24
       sw ra, 0(sp)
       jal L74
@@ -423,14 +423,14 @@ L116:
 L117:
       j L125
 L118:
-      addi s1, sp,32
+      addi fp, sp,32
       lw t1,-16(sp)
-      sw t1, -12(s1)
+      sw t1, -12(fp)
 L119:
       addi t0, sp,-24
-      sw t0, -8(s1)
+      sw t0, -8(fp)
 L120:
-      sw sp, -4(s1)
+      sw sp, -4(fp)
       addi sp, sp,32
       sw ra, 0(sp)
       jal L93
@@ -453,14 +453,14 @@ L123:
 L124:
       j L116
 L125:
-      addi s1, sp,32
+      addi fp, sp,32
       li t1,2023
-      sw t1, -12(s1)
+      sw t1, -12(fp)
 L126:
       addi t0, sp,-32
-      sw t0, -8(s1)
+      sw t0, -8(fp)
 L127:
-      sw sp, -4(s1)
+      sw sp, -4(fp)
       addi sp, sp,32
       sw ra, 0(sp)
       jal L93
@@ -473,14 +473,14 @@ L128:
       li a7, 4
       ecall
 L129:
-      addi s1, sp,32
+      addi fp, sp,32
       li t1,2024
-      sw t1, -12(s1)
+      sw t1, -12(fp)
 L130:
       addi t0, sp,-36
-      sw t0, -8(s1)
+      sw t0, -8(fp)
 L131:
-      sw sp, -4(s1)
+      sw sp, -4(fp)
       addi sp, sp,32
       sw ra, 0(sp)
       jal L93
@@ -493,14 +493,14 @@ L132:
       li a7, 4
       ecall
 L133:
-      addi s1, sp,36
+      addi fp, sp,36
       li t1,3
-      sw t1, -12(s1)
+      sw t1, -12(fp)
 L134:
       addi t0, sp,-40
-      sw t0, -8(s1)
+      sw t0, -8(fp)
 L135:
-      sw sp, -4(s1)
+      sw sp, -4(fp)
       addi sp, sp,36
       sw ra, 0(sp)
       jal L80
@@ -513,14 +513,14 @@ L136:
       li a7, 4
       ecall
 L137:
-      addi s1, sp,40
+      addi fp, sp,40
       li t1,5
-      sw t1, -12(s1)
+      sw t1, -12(fp)
 L138:
       addi t0, sp,-44
-      sw t0, -8(s1)
+      sw t0, -8(fp)
 L139:
-      sw sp, -4(s1)
+      sw sp, -4(fp)
       addi sp, sp,40
       sw ra, 0(sp)
       jal L20
@@ -539,14 +539,14 @@ L141:
 L142:
       j L150
 L143:
-      addi s1, sp,32
+      addi fp, sp,32
       lw t1,-16(sp)
-      sw t1, -12(s1)
+      sw t1, -12(fp)
 L144:
       addi t0, sp,-48
-      sw t0, -8(s1)
+      sw t0, -8(fp)
 L145:
-      sw sp, -4(s1)
+      sw sp, -4(fp)
       addi sp, sp,32
       sw ra, 0(sp)
       jal L55

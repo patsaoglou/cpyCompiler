@@ -31,7 +31,6 @@ COMMENTK = 118  # ## COMMNENT
 INTEGERTK = 119  # AKERAIA STATHERA
 ANAGNORTK = 120  # ANAGNORISTIKO (GRAMMATA + ARITHMOUS) megethos:30
 
-
 #define DESMEUMENES LEKSEIS
 
 MAINTK =121 #main
@@ -63,8 +62,9 @@ is_in_function_definition = 0
 quadsList = []
 quadNum = 1
 tempNum = 1
-# ---------------------- Pinakas Sym ---------------------- #
 
+# ---------------------- Pinakas Sym ---------------------- #
+assembly_file = None
 sym_file = None
 scope_list = []
 current_scope_level = 0
@@ -104,9 +104,14 @@ def create_scope(name):
 
 def close_scope():
     global current_scope_level, scope_list 
+
     if scope_list:
         sym_out(scope_list)
         last_scope = scope_list.pop()
+        if len(last_scope.entities) == 0:
+            current_scope_level -= 1
+            scope_list[current_scope_level-1].entities[-1].framelength = 12
+            return
 
         last_entity_with_offset = len(last_scope.entities) - 1
         while(last_scope.entities[last_entity_with_offset].offset == None):
@@ -128,13 +133,20 @@ def add_entity(newEntity, isFuction = False, isGlobal = False):
 
     scope_entity_list = scope_list[current_scope_level-1].entities
 
+    for entity in scope_entity_list:
+        if entity.name == newEntity.name:
+            fail_exit("Entity with name '"+newEntity.name+"' cannot be added to scope because this entity name already exists in current scope.")
+
     if isFuction == False and isGlobal == False:
         
         if len(scope_entity_list) == 0:
             scope_list[current_scope_level-1].previous_offset = 12
             newEntity.offset = scope_list[current_scope_level-1].previous_offset
         else:
-            scope_list[current_scope_level-1].previous_offset += 4
+            if scope_list[current_scope_level-1].previous_offset == 0:
+                scope_list[current_scope_level-1].previous_offset = 12
+            else:
+                scope_list[current_scope_level-1].previous_offset += 4
             newEntity.offset = scope_list[current_scope_level-1].previous_offset
 
     if isGlobal:
@@ -142,7 +154,346 @@ def add_entity(newEntity, isFuction = False, isGlobal = False):
         
     scope_entity_list.append(newEntity)  
 
-# ------------------------------------------------------------------- #
+# --------------------------Telikos------------------------ #
+
+assembly_quads = []
+starting_quad = 0
+ending_quad = 0
+function_par = []
+is_in_main_block = False
+block_name_list = []
+endblock = []
+call_entity = None
+initial_par_offset = 12
+par_len = 0
+
+def is_integer(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+    
+def gnlvcode(v):
+    global current_scope_level, scope_list, assembly_quads 
+    
+    check_scope = current_scope_level - 2
+    entity_found = None
+    assembly_out("      lw t0,-4(sp)")
+    while check_scope >=0:
+
+        for entity in scope_list[check_scope].entities:
+            if entity.offset == None and entity.type != "GLOBAL":
+                break
+            if entity.name == v:
+                entity_found = entity
+                break
+        if entity_found != None:
+            break
+        check_scope -= 1
+        
+        assembly_out("      lw t0,-4(t0)")
+    
+    if entity_found:
+        assembly_out("      addi t0,t0,-"+str(entity_found.offset))
+    else:
+        int_out()
+        
+        fail_exit("Variable '"+v+"' not found in parent scopes")
+
+def gnlvcode_local(v, reg, is_storing = False):
+    global current_scope_level,scope_list,assembly_quads 
+    entity_found = None
+    check_scope = current_scope_level - 1
+   
+    for entity in scope_list[check_scope].entities:
+        if entity.name == v:
+            if entity.offset == None:
+                if entity.type == "GLOBAL":
+                    return gnlvcode_global(v, reg, is_storing)
+                else:
+                    continue
+            entity_found = entity
+            break
+    
+    if entity_found:
+        if is_storing:
+            assembly_out("      sw "+reg+",-"+str(entity_found.offset)+"(sp)")
+        else:
+            assembly_out("      lw "+reg+",-"+str(entity_found.offset)+"(sp)")
+
+    return entity_found
+
+def gnlvcode_global(v, reg, is_storing = False):
+    global current_scope_level,scope_list,assembly_quads ,initial_par_offset
+    entity_found = None
+    # immediatly checks first scope for global
+    for entity in scope_list[0].entities:
+        if entity.name == v:
+            entity_found = entity
+            break
+    
+    if entity_found:
+        if is_storing:
+            assembly_out("      sw "+reg+",-"+str(entity_found.offset)+"(gp)")
+        else:
+            assembly_out("      lw "+reg+",-"+str(entity_found.offset)+"(gp)")
+
+    return entity_found
+
+def loadvr(v, reg):
+    global assembly_quads
+    
+    if is_integer(v):
+        assembly_out("      li "+reg+","+str(v))
+
+    elif gnlvcode_local(v, reg) != None:
+        return
+    else: # progonous
+        gnlvcode(v)
+        assembly_out("      lw "+reg+", 0(t0)")
+
+def storerv(reg, v):
+    if gnlvcode_local(v, reg, True) != None:
+        return
+    else:
+        gnlvcode(v)
+        assembly_out("      sw "+reg+", 0(t0)")
+
+def search_call_quad(par_quad):
+    global quadsList
+    par_quad_label = par_quad[0]
+    while quadsList[par_quad_label][1] != "call":
+        par_quad_label +=1
+
+    return quadsList[par_quad_label][2]
+
+
+def assembly_quad_from_quad(quad):
+    global starting_quad, function_par, endblock, ending_quad, call_entity, initial_par_offset, par_len
+    
+    if quad[1] == "JUMP":
+        assembly_out("L"+str(quad[0])+":")
+
+        assembly_out("      j L"+str(quad[4]))
+
+    elif quad[1] == '=':
+        if is_integer(quad[2]) or quad[2].isalpha() or 'T_' in quad[2]:
+            assembly_out("L"+str(quad[0])+":")
+            loadvr(quad[2],"t1")
+            storerv("t1", quad[4])
+    elif quad[1] in ["+","-","%","//","*"]:
+        assembly_out("L"+str(quad[0])+":")
+             
+        loadvr(quad[2],"t1")
+        loadvr(quad[3],"t2")
+        
+        if quad[1] == "+":
+            assembly_out("      add t1, t1, t2") 
+        elif quad[1] == "-":
+            assembly_out("      sub t1, t1, t2")  
+        elif quad[1] == "*":
+            assembly_out("      mul t1, t1, t2") 
+        elif quad[1] == "%":
+            assembly_out("      rem t1, t1, t2")  
+        elif quad[1] == "//":
+            assembly_out("      div t1, t1, t2")  
+        storerv("t1",quad[4])
+    elif quad[1] in ["<","<=",">=",">","==","!="]:
+        assembly_out("L" + str(quad[0]) + ":")
+        loadvr(quad[2], "t1")
+        loadvr(quad[3], "t2")
+
+        if quad[1] == "<":
+            assembly_out("      blt t1, t2, L" + str(quad[4]))
+        elif quad[1] == "<=":
+            assembly_out("      ble t1, t2, L" + str(quad[4]))
+        elif quad[1] == ">":
+            assembly_out("      bgt t1, t2, L" + str(quad[4]))
+        elif quad[1] == ">=":
+            assembly_out("      bge t1, t2, L" + str(quad[4])) 
+        elif quad[1] == "==":
+            assembly_out("      beq t1, t2, L" + str(quad[4])) 
+        elif quad[1] == "!=":
+            assembly_out("      bne t1, t2, L" + str(quad[4]))
+
+    elif quad[1] == "call":
+
+        if len(endblock)> 0 and endblock[-1] == quad[2]:
+            function_entity = search_function(quad[2], True)
+        else:
+            function_entity = search_function(quad[2], False)
+
+        actual_par_len = len(function_entity[0].arguments)
+        
+        if par_len != actual_par_len:
+            fail_exit("Funtion call parameter number not same as in declaration")
+
+        call_function(quad, function_entity)
+
+    elif quad[1] == "PAR":
+        if call_entity == None:
+
+            call_entity = search_function(search_call_quad(quad), True)[0]
+            assembly_out("L" + str(quad[0]) + ":")
+            assembly_out("      addi fp, sp,"+str(handle_none_framelength(call_entity)))    
+            if quad[3] == "CV":
+                loadvr(quad[2], "t1")
+                assembly_out("      sw t1, -"+str(initial_par_offset)+"(fp)")
+                initial_par_offset+=4
+                par_len +=1
+            elif quad[3] == "RET":
+                assembly_out("      addi t0, sp,-"+str(ret_offset(quad[2])))
+                assembly_out("      sw t0, -8(fp)") 
+        else:
+            if quad[3] == "CV":
+                assembly_out("L" + str(quad[0]) + ":")
+                loadvr(quad[2], "t1")
+                assembly_out("      sw t1, -"+str(initial_par_offset)+"(fp)")
+                initial_par_offset+=4
+                par_len +=1
+            elif quad[3] == "RET":
+               
+                assembly_out("L" + str(quad[0]) + ":")
+                assembly_out("      addi t0, sp,-"+str(ret_offset(quad[2])))
+                assembly_out("      sw t0, -8(fp)")  
+
+    elif quad[1] == "out":
+        assembly_out("L"+str(quad[0])+":")
+
+        loadvr(quad[2],"a0")
+        assembly_out("      li a7, 1")
+        assembly_out("      ecall")
+        assembly_out("      la a0, str_nl")
+        assembly_out("      li a7, 4")
+        assembly_out("      ecall")
+    elif quad[1] == "inp":
+        assembly_out("L"+str(quad[0])+":")
+        assembly_out("      li a7,5")
+        assembly_out("      ecall")
+
+    elif quad[1] == "ret":
+        assembly_out("L"+str(quad[0])+":")
+        
+        loadvr(quad[2],"t1")
+
+        assembly_out("      lw t0, -8(sp)")
+        assembly_out("      sw t1, 0(t0)")
+        assembly_out("      j L"+ str(ending_quad))
+
+def call_function(quad, function_entity):
+    global function_par, endblock, is_in_main_block, call_entity, initial_par_offset, par_len
+    caller_scope = 0
+    
+    if len(endblock)>0:
+        caller_scope = search_function(endblock[-1], True)[1]
+
+    if initial_par_offset == 12:
+        assembly_out("L" + str(quad[0]) + ":")
+        assembly_out("      addi fp, sp,"+str(handle_none_framelength(function_entity[0])))
+    else:
+        assembly_out("L" + str(quad[0]) + ":")    
+
+    if (caller_scope == function_entity[1]) and is_in_main_block == False: # if entities are brothers in the same scope
+        assembly_out("      lw t0, -4(sp)")
+        assembly_out("      sw t0, -4(fp)")
+    else:    
+        assembly_out("      sw sp, -4(fp)")
+    assembly_out("      addi sp, sp,"+str(handle_none_framelength(function_entity[0])))
+    assembly_out("      sw ra, 0(sp)")
+
+    assembly_out("      jal L"+str(function_entity[0].label))
+    assembly_out("      addi sp, sp,-"+str(handle_none_framelength(function_entity[0])))
+    
+    function_par = []
+    call_entity = None 
+    initial_par_offset = 12
+    par_len = 0
+
+    return function_entity[0]
+
+def handle_none_framelength(entity):
+    global scope_list
+    if entity.framelength == None: # recursion / framelength of previous scope entity is no yet return because scope is not removed
+        return scope_list[-1].entities[-1].offset + 4
+    else:
+        return entity.framelength
+
+def ret_offset(v):
+    global current_scope_level, scope_list, assembly_quads 
+    
+    check_scope = current_scope_level - 1
+    entity_found = None
+
+    for entity in scope_list[check_scope].entities[::-1]:
+        if entity.name == v:
+            entity_found = entity
+            break
+    
+    if entity_found:
+        return entity_found.offset
+    else:
+        fail_exit("Variable '"+v+"' not found in parent scopes")
+
+
+def search_function(function_name, is_from_scope_check = False):
+    global current_scope_level, scope_list
+    starting_scope = current_scope_level - 1
+    function_entity = None
+
+    while starting_scope >= 0 and function_entity== None:
+        for entity in scope_list[starting_scope].entities[::-1]:
+            if entity.name == function_name and is_from_scope_check:
+                function_entity = entity
+                break 
+            if entity.name == function_name and entity.framelength != None:
+                function_entity = entity
+                break 
+        if function_entity == None:
+            starting_scope-=1
+
+    if function_entity == None:
+        fail_exit("Function that is called cannot be found in known scopes.")
+    
+    return [function_entity, starting_scope]
+
+def gen_assembly_fuction_quads():
+    global quadsList, starting_quad # global because issue in case of nested function declaration
+    # print(starting_quad)          # starting quad of parent not the initial quad 
+                                    # we dont want start again regenarating child function
+    while(quadsList[starting_quad][1] != "end_block"):
+        assembly_quad_from_quad(quadsList[starting_quad])
+        starting_quad +=1
+    starting_quad += 1  # begin quad of parent fuction (end_block child + 1 quad for parent's)
+   
+
+def gen_assembly_main_quads(starting_quad):
+    global quadsList
+    
+    assembly_out("Lmain:")
+    assembly_out("      addi sp,sp,"+ str(get_main_framelength()))
+    assembly_out("      mv gp,sp")
+    
+    while(quadsList[starting_quad][1] != "end_main"):
+        assembly_quad_from_quad(quadsList[starting_quad])
+        starting_quad +=1
+    
+    assembly_out("L"+str(quadsList[starting_quad][0]-1) +":")
+    assembly_out("      li a0,0")
+    assembly_out("      li a7,93")
+    assembly_out("      ecall")
+
+def get_main_framelength():
+    global scope_list
+
+    return scope_list[0].entities[-1].offset + 4
+
+# --------------------------------------------------------- #
+# ---------------------- Symasiologikos ---------------------- #
+
+
+# --------------------------------------------------------- #
+# -------------------------Endiamesos---------------------- #
 def gen_quad(op, op1, op2, op3):
     global quadsList
     global quadNum
@@ -856,14 +1207,15 @@ def parse_id_list(isParam = False, isGlobal = False):
         fail_exit("Expected arphanumeric on declaration (ID_LIST).")
 
 def parse_function_definition():
-    global current_token
-
+    global current_token, block_name_list, starting_quad, ending_quad, endblock
     if current_token[0] == DEFTK:
         current_token = lex()
 
         if current_token[0] == ANAGNORTK:
+            block_name_list.append(current_token[1])
+            endblock.append(current_token[1])
+            
             entity = Entity(current_token[1])
-            entity.label = next_quad()
             add_entity(entity, True)
 
             create_scope(current_token[1])
@@ -888,10 +1240,20 @@ def parse_function_definition():
                             current_token = lex()
                             check_for_comment()
 
-                            parse_function_block()
+                            parse_function_block(entity)
                             
+                            ending_quad = next_quad()
+                            
+                            gen_quad("end_block",block_name_list.pop(),"_","_")
+    
+                            gen_assembly_fuction_quads()
+                            assembly_out("L" + str(next_quad()-1) + ":")
+                            assembly_out("      lw ra, 0(sp)")
+                            assembly_out("      jr ra")
+                            
+                            endblock.pop()
                             close_scope()
-                                                        
+                                                                                   
                             current_token = lex()
 
                         else:
@@ -907,8 +1269,8 @@ def parse_function_definition():
 
     # no function definition found
 
-def parse_function_block():
-    global current_token
+def parse_function_block(entity):
+    global current_token, starting_quad
 
     # DECLARATIONS #INT
     while current_token[0] == INTTYPETK:
@@ -921,6 +1283,13 @@ def parse_function_block():
     while current_token[0] == DEFTK:
         parse_function_definition()
         check_for_comment()
+
+    gen_quad("begin_block",entity.name,"_","_")
+            
+    starting_quad = next_quad() - 1
+    assembly_out("L" + str(starting_quad) + ":")
+    assembly_out("      sw ra,-0(sp)")
+    entity.label = starting_quad
 
     check_for_comment()
     # DECLARATIONS GLOBALS
@@ -961,7 +1330,6 @@ def parse_int():
 
                 if current_token[0] == CPARTK:
                     current_token = lex()
-                    print(current_token[1])
 
                     if current_token[0] == CPARTK:
                         w = new_temp()
@@ -1016,10 +1384,14 @@ def parse_main():
         fail_exit("Expected 'main' after #def but did not get it. Got '" + current_token[1]+ "'.")
 
 def parse_program():
-    global current_token, scope_list, current_scope_level
+    global current_token, scope_list, current_scope_level, is_in_main_block
     
     create_scope("PROGRAM")
-
+    assembly_out(""".data
+str_nl: .asciz "\\n"
+.text""")
+    assembly_out("L0:\n     j Lmain")
+    
     # DECLARATIONS #INT
     while current_token[0] == INTTYPETK:
         parse_int_type_declaration()
@@ -1037,8 +1409,18 @@ def parse_program():
     if current_token[0] == DEF2TK:
         current_token = lex()
 
+        is_in_main_block = True
+        gen_quad("begin_main","_","_","_")
+        main_starting_quad = next_quad() - 1
 
         parse_main()
+
+        gen_quad("halt","_","_","_")
+
+        gen_quad("end_main","_","_","_")
+        
+        gen_assembly_main_quads(main_starting_quad)
+
     else:
         fail_exit("Did not found main declaration. Got '" + current_token[1] + "'.")
 
@@ -1048,7 +1430,7 @@ def fail_exit(err):
     exit(0)
 
 def parse():
-    global current_token
+    global current_token, assembly_file
     current_token = lex()
 
     parse_program()
@@ -1058,9 +1440,18 @@ def parse():
        
     int_out()
     sym_out(scope_list)
-
     print("\nEOF reached. Syntax analysis finised succesfully.")
 
+
+def assembly_out(assembly_quad):
+    global assembly_file
+    
+    if assembly_file is None:
+        name = sys.argv[1].split(".")[0]
+        assembly_file = open(name+".asm", "w")
+  
+    assembly_file.write("\n"+assembly_quad)    
+    
 def sym_out(scopelist_state):
     global sym_file
 
@@ -1084,7 +1475,7 @@ def int_out():
 
     for quad in quadsList:
         line = str(quad[0])+" "+quad[1]+" "+quad[2]+" "+quad[3]+" "+str(quad[4])
-        print(line)
+        # print(line)
         int_file.write(line+"  \n")
 
     int_file.close()

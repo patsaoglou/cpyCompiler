@@ -1,0 +1,30 @@
+
+
+################################################################
+
+
+
+Scope Name: PROGRAM, Level: 0
+Entities:
+	Name: counter, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: power, Offset: None, Label: 1, Arguments: ['base', 'exponent'], Framelength: None, Type: NOT_GLOBAL
+
+Scope Name: power, Level: 1
+Entities:
+	Name: base, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: exponent, Offset: 16, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: counter, Offset: None, Label: None, Arguments: [], Framelength: None, Type: GLOBAL
+	Name: T_1, Offset: 20, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_2, Offset: 24, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_3, Offset: 28, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+
+################################################################
+
+
+
+Scope Name: PROGRAM, Level: 0
+Entities:
+	Name: counter, Offset: 12, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: power, Offset: None, Label: 1, Arguments: ['base', 'exponent'], Framelength: 32, Type: NOT_GLOBAL
+	Name: pwr, Offset: 16, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
+	Name: T_4, Offset: 20, Label: None, Arguments: [], Framelength: None, Type: NOT_GLOBAL
