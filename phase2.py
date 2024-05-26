@@ -31,7 +31,6 @@ COMMENTK = 118  # ## COMMNENT
 INTEGERTK = 119  # AKERAIA STATHERA
 ANAGNORTK = 120  # ANAGNORISTIKO (GRAMMATA + ARITHMOUS) megethos:30
 
-
 #define DESMEUMENES LEKSEIS
 
 MAINTK =121 #main
@@ -155,19 +154,23 @@ def add_entity(newEntity, isFuction = False, isGlobal = False):
         
     scope_entity_list.append(newEntity)  
 
-
-# -----------------------Voithitikes----------------------- #
-block_name_list = []
-endblock = []
-
 # --------------------------Telikos------------------------ #
+
 assembly_quads = []
-assembly_label_counter = 0
 starting_quad = 0
 ending_quad = 0
 function_par = []
 is_in_main_block = False
-# Do something in case of Globals
+block_name_list = []
+endblock = []
+
+def is_integer(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+    
 def gnlvcode(v):
     global current_scope_level, scope_list, assembly_quads 
     
@@ -201,9 +204,6 @@ def gnlvcode_local(v, reg, is_storing = False):
     check_scope = current_scope_level - 1
    
     for entity in scope_list[check_scope].entities:
-        # print(entity.name+" "+str(entity.offset)+" "+entity.type)
-        # if entity.offset == None and entity.label != "GLOBAL":
-        #     break
         if entity.name == v:
             if entity.offset == None:
                 if entity.type == "GLOBAL":
@@ -238,13 +238,6 @@ def gnlvcode_global(v, reg, is_storing = False):
 
     return entity_found
 
-def is_integer(s):
-    try:
-        int(s)
-        return True
-    except ValueError:
-        return False
-
 def loadvr(v, reg):
     global assembly_quads
     
@@ -253,8 +246,6 @@ def loadvr(v, reg):
 
     elif gnlvcode_local(v, reg) != None:
         return
-    # elif gnlvcode_global(v, reg) != None:
-    #     return
     else: # progonous
         gnlvcode(v)
         assembly_out("      lw "+reg+", 0(t0)")
@@ -262,8 +253,6 @@ def loadvr(v, reg):
 def storerv(reg, v):
     if gnlvcode_local(v, reg, True) != None:
         return
-    # elif gnlvcode_global(v, reg, True) != None:
-    #     return
     else:
         gnlvcode(v)
         assembly_out("      sw "+reg+", 0(t0)")
@@ -283,8 +272,7 @@ def assembly_quad_from_quad(quad):
             storerv("t1", quad[4])
     elif quad[1] in ["+","-","%","//","*"]:
         assembly_out("L"+str(quad[0])+":")
-        # print(quad[2])
-       
+             
         loadvr(quad[2],"t1")
         loadvr(quad[3],"t2")
         
@@ -321,7 +309,6 @@ def assembly_quad_from_quad(quad):
         # this is for recursion but we dont know frame length to reserve stack space
         if len(endblock)> 0 and endblock[-1] == quad[2]:
             function_entity = search_function(quad[2], True)
-            # print(scope_list[-1].__str__())
         else:
             function_entity = search_function(quad[2], False)
 
@@ -335,7 +322,6 @@ def assembly_quad_from_quad(quad):
             fail_exit("Funtion call parameter number not same as in declaration")
 
         call_function(quad, function_entity)
-
 
     elif quad[1] == "PAR":
         function_par.append(quad)       
@@ -362,18 +348,12 @@ def assembly_quad_from_quad(quad):
         assembly_out("      sw t1, 0(t0)")
         assembly_out("      j L"+ str(ending_quad))
 
-
-
-
-
-
 def call_function(quad, function_entity):
     global function_par, endblock, is_in_main_block
     caller_scope = 0
     
     if len(endblock)>0:
         caller_scope = search_function(endblock[-1], True)[1]
-
 
     if len(function_par) != 0:
         initial_par_offset = 12
@@ -395,8 +375,7 @@ def call_function(quad, function_entity):
                 assembly_out("      addi t0, sp,-"+str(ret_offset(par[2])))
                 assembly_out("      sw t0, -8(fp)")                
             idx+=1
-        assembly_out("L" + str(quad[0]) + ":")
-        
+        assembly_out("L" + str(quad[0]) + ":")       
 
     else:
         assembly_out("L" + str(quad[0]) + ":")
@@ -462,8 +441,6 @@ def search_function(function_name, is_from_scope_check = False):
     
     return [function_entity, starting_scope]
 
-
-
 def gen_assembly_fuction_quads():
     global quadsList, starting_quad # global because issue in case of nested function declaration
     # print(starting_quad)          # starting quad of parent not the initial quad 
@@ -472,7 +449,7 @@ def gen_assembly_fuction_quads():
         assembly_quad_from_quad(quadsList[starting_quad])
         starting_quad +=1
     starting_quad += 1  # begin quad of parent fuction (end_block child + 1 quad for parent's)
-    
+   
 
 def gen_assembly_main_quads(starting_quad):
     global quadsList
@@ -495,15 +472,12 @@ def get_main_framelength():
 
     return scope_list[0].entities[-1].offset + 4
 
-
-
-
 # --------------------------------------------------------- #
 # ---------------------- Symasiologikos ---------------------- #
 
 
 # --------------------------------------------------------- #
-# ------------------------------------------------------------------- #
+# -------------------------Endiamesos---------------------- #
 def gen_quad(op, op1, op2, op3):
     global quadsList
     global quadNum
@@ -1263,8 +1237,7 @@ def parse_function_definition():
                             
                             endblock.pop()
                             close_scope()
-                            
-                                                        
+                                                                                   
                             current_token = lex()
 
                         else:
@@ -1301,8 +1274,6 @@ def parse_function_block(entity):
     assembly_out("L" + str(starting_quad) + ":")
     assembly_out("      sw ra,-0(sp)")
     entity.label = starting_quad
-
-
 
     check_for_comment()
     # DECLARATIONS GLOBALS
@@ -1397,7 +1368,7 @@ def parse_main():
         fail_exit("Expected 'main' after #def but did not get it. Got '" + current_token[1]+ "'.")
 
 def parse_program():
-    global current_token, scope_list, current_scope_level, assembly_label_counter, is_in_main_block
+    global current_token, scope_list, current_scope_level, is_in_main_block
     
     create_scope("PROGRAM")
     assembly_out(""".data

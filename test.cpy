@@ -13,20 +13,19 @@ def max3(x, y, z):
         m = z
     return m
 #}
-
-
+ 
 def fib(x):
+    ## corrected fibonacci ##
 #{
     global counterFunctionCalls
     counterFunctionCalls = counterFunctionCalls + 1
-    if x<0:
-        return -1
-    elif x==0 or x==1:
+    if x<=0:
+        return 0
+    elif x==1:
         return 1
     else:
         return fib(x-1)+fib(x-2)
 #}
-     
      
 def isPrime(x):
 #{
@@ -90,8 +89,6 @@ def leap(year):
         return 0 
 #}        
 
-
-        
 #def main
 #int i
 counterFunctionCalls = 0

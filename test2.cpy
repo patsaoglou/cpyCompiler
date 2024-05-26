@@ -43,8 +43,7 @@ def custom(x,y):
     else:
         return 0
 #}
-
-        
+       
 
 def counter():
 #{
@@ -56,13 +55,19 @@ def counter():
         count=count+1
         print(count)
     #}
-   
+#}
+
+def divides(x,y,z):
+#{
+    ## body of divides ##
+    if z == (x//y):
+        return 1
+    else:
+        return 0
 #}
 
 #def main
-
-## inside main ##
-            
+## inside main ##         
 #int i
         
 i = int(input())
